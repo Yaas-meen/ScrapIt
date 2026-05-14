@@ -1,25 +1,28 @@
 {
   "name": "scrapit",
   "version": "1.0.0",
-  "private":"true",
-  "description": "ScrapIt Fullstack monorepo using MERN stack architecture",
+  "description": "",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Yaas-meen/ScrapIt.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+
   "bugs": {
     "url": "https://github.com/Yaas-meen/ScrapIt./issues"
   },
+
   "homepage": "https://github.com/Yaas-meen/ScrapIt.#readme",
+
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev",
+    "install:all": "npm install && npm --prefix server install && npm --prefix client install",
+    "build": "npm --prefix client run build"
+  },
+
   "devDependencies": {
-    "nodemon": "^3.1.14",
-    "concurrently": "^9.0.0"
+    "nodemon": "^3.1.14"
   }
 }
