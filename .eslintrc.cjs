@@ -9,7 +9,7 @@ module.exports = {
     'eslint:recommended',
     'plugin:react/recommended',
     'plugin:react-hooks/recommended',
-    'prettier', // must be last — disables rules that conflict with Prettier
+    'prettier',
   ],
   plugins: ['react', 'react-hooks'],
   parserOptions: {
