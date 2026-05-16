@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import jwt from 'jsonwebtoken';
+import routes from './routes/index.js';
 import errorHandler from './middleware/errorHandler.js';
 
 const app = express();
@@ -29,6 +31,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.get('/health', (req, res) => {
   res.json({ success: true, message: 'ScrapIt API is running', env: process.env.NODE_ENV });
 });
+
+
+app.use('/api/v1', routes);
 
 app.use((req, res) => {
   res.status(404).json({ success: false, message: `Route ${req.originalUrl} not found` });
