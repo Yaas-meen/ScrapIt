@@ -24,6 +24,7 @@
     "prepare": "husky"
   },
   "devDependencies": {
+    "nodemon": "^3.1.14",
     "@commitlint/cli": "^21.0.1",
     "@commitlint/config-conventional": "^21.0.1",
     "@eslint/js": "^9.39.4",

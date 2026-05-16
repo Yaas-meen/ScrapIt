@@ -11,7 +11,6 @@ async function callApi(method, url, body, params) {
   return data?.data;
 }
 
-// next mock ID
 const nextMockId = (list) => {
   const max = list.reduce((m, p) => {
     const n = Number(String(p.id).split('-')[1]);
@@ -24,9 +23,9 @@ const todayIso = () => new Date().toISOString();
 
 export const usePickupStore = create((set, get) => ({
   // State 
-  pickups: [...mockPickups],         // baseline so admin/collector UIs render in mock mode
-  myPickups: [],                     // current user scope
-  assignedPickups: [],               // current collector scope
+  pickups: [...mockPickups],         
+  myPickups: [],                    
+  assignedPickups: [],               
   selected: null,
   filters: { status: null, search: '', from: null, to: null },
   pagination: { page: 1, limit: 20, total: 0 },
@@ -39,7 +38,6 @@ export const usePickupStore = create((set, get) => ({
   setSelected: (pickup) => set({ selected: pickup }),
   clearSelected: () => set({ selected: null }),
 
-  // User-scoped reads 
   fetchMyPickups: async (userId) => {
     set({ isLoading: true, error: null });
     try {
@@ -74,7 +72,6 @@ export const usePickupStore = create((set, get) => ({
     }
   },
 
-  // User-scoped writes
   createPickup: async (input) => {
     set({ isLoading: true, error: null });
     try {
@@ -128,7 +125,6 @@ export const usePickupStore = create((set, get) => ({
     }
   },
 
-  //Admin reads/writes 
   fetchAllPickups: async () => {
     set({ isLoading: true, error: null });
     try {
@@ -190,7 +186,6 @@ export const usePickupStore = create((set, get) => ({
     }
   },
 
-  //Collector reads/writes 
   fetchAssignedPickups: async (collectorId) => {
     set({ isLoading: true, error: null });
     try {
@@ -257,7 +252,8 @@ export const usePickupStore = create((set, get) => ({
     }),
 }));
 
-/*internal helpers*/
+//internal helpers
+
 function _patchPickup(set, get, id, patch) {
   const apply = (list) =>
     list.map((p) => (p.id === id ? { ...p, ...patch } : p));
