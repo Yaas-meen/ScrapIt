@@ -21,15 +21,15 @@ const nextRedemptionId = (list) => {
 };
 
 export const useRewardStore = create((set, get) => ({
-  // ---- State ----
+  //state
   catalog: rewardCatalog,
   history: [],
   isLoading: false,
   isRedeeming: false,
   error: null,
-  lastRedemption: null, // populated after successful redeem for success modal
+  lastRedemption: null, 
 
-  // ---- Reads ----
+  //reward reads
   fetchCatalog: async () => {
     set({ isLoading: true, error: null });
     try {
@@ -64,11 +64,7 @@ export const useRewardStore = create((set, get) => ({
     }
   },
 
-  // ---- Validation ----
-  /**
-   * Returns { ok: true } or { ok: false, message: string }.
-   * Mirrors server-side rules so the UI can disable the submit button.
-   */
+//Validate redeem rewards
   validateRedeem: ({ type, providerId, denomination }) => {
     const cat = get().catalog;
     if (!cat?.[type]) return { ok: false, message: 'Unknown reward type' };
@@ -97,7 +93,7 @@ export const useRewardStore = create((set, get) => ({
     return { ok: true, denomination: denom, provider };
   },
 
-  // ---- Write ----
+  //writes
   redeem: async ({ type, providerId, denomination, phone }) => {
     set({ isRedeeming: true, error: null, lastRedemption: null });
     try {
@@ -113,7 +109,6 @@ export const useRewardStore = create((set, get) => ({
           phone,
         });
       } catch {
-        // Mock path: build a fulfilled redemption and debit the user's points.
         const user = useAuthStore.getState().user;
         record = {
           id: nextRedemptionId(mockRedemptions),
@@ -129,6 +124,7 @@ export const useRewardStore = create((set, get) => ({
           createdAt: new Date().toISOString(),
         };
         // Debit user balance optimistically in the auth store
+
         if (user) {
           useAuthStore.setState({
             user: {

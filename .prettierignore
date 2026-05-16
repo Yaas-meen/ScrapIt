@@ -1,0 +1,7 @@
+node_modules
+dist
+build
+client/dist
+.env
+*.md
+package-lock.json

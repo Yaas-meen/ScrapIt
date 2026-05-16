@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { mockNotificationsByUser, unreadCount as mockUnreadCount } from '../mock/mockNotifications';
 import { useAuthStore } from './useAuthStore';
+import { shouldFallback } from './_fallback';
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 
@@ -16,27 +17,17 @@ async function callApi(method, url, body, opts = {}) {
   return data;
 }
 
-function isNetworkError(err) {
-  return (
-    err?.message === 'mock-forced' ||
-    err?.code === 'ERR_NETWORK' ||
-    err?.code === 'ECONNREFUSED' ||
-    err?.response == null
-  );
-}
+const isNetworkError = shouldFallback;
 
 export const useNotificationStore = create((set, get) => ({
-  // ---- State ----
   items: [],
   isLoading: false,
   error: null,
   meta: { unreadCount: 0, page: 1, limit: 20, total: 0 },
 
-  // ---- Selectors ----
   unread: () => get().items.filter((n) => !n.readAt),
   read: () => get().items.filter((n) => !!n.readAt),
 
-  // ---- Reads ----
   fetch: async ({ unreadOnly = false, page = 1, limit = 20 } = {}) => {
     set({ isLoading: true, error: null });
     try {
@@ -60,7 +51,6 @@ export const useNotificationStore = create((set, get) => ({
           unreadCount: mockUnreadCount(userId),
         };
       }
-      // Newest first
       items = [...items].sort(
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       );
@@ -76,9 +66,7 @@ export const useNotificationStore = create((set, get) => ({
     }
   },
 
-  // ---- Writes ----
   markRead: async (id) => {
-    // Optimistic update
     const now = new Date().toISOString();
     set((s) => ({
       items: s.items.map((n) => (n.id === id && !n.readAt ? { ...n, readAt: now } : n)),
@@ -88,7 +76,6 @@ export const useNotificationStore = create((set, get) => ({
       await callApi('patch', `/notifications/${id}/read`);
     } catch (err) {
       if (!isNetworkError(err)) {
-        // Roll back on real server error
         set((s) => ({
           items: s.items.map((n) => (n.id === id ? { ...n, readAt: null } : n)),
           meta: { ...s.meta, unreadCount: (s.meta.unreadCount || 0) + 1 },
@@ -96,7 +83,6 @@ export const useNotificationStore = create((set, get) => ({
         }));
         throw err;
       }
-      // Network/mock: keep optimistic state, no-op.
     }
   },
 
