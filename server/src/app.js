@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import jwt from 'jsonwebtoken';
+import cookieParser from 'cookie-parser';
 import routes from './routes/index.js';
 import errorHandler from './middleware/errorHandler.js';
 
@@ -27,6 +27,7 @@ if (process.env.NODE_ENV === 'development') {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+app.use(cookieParser());
 
 app.get('/health', (req, res) => {
   res.json({ success: true, message: 'ScrapIt API is running', env: process.env.NODE_ENV });

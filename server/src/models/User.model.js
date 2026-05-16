@@ -65,10 +65,10 @@ const userSchema = new mongoose.Schema(
 userSchema.index({ role: 1 });
 userSchema.index({ createdAt: -1 });
 
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+userSchema.pre('save', async function () {
+  if (!this.isModified('password')) return;
+
   this.password = await bcrypt.hash(this.password, 12);
-  next();
 });
 
 
@@ -77,11 +77,12 @@ userSchema.methods.comparePassword = async function (enteredPassword) {
 };
 
 
-userSchema.pre('save', function (next) {
+userSchema.pre('save', function () {
   if (this.phone && this.defaultAddress) {
     this.isProfileComplete = true;
+  } else {
+    this.isProfileComplete = false;
   }
-  next();
 });
 
 const User = mongoose.model('User', userSchema);
