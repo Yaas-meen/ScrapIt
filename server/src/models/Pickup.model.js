@@ -109,6 +109,11 @@ const pickupSchema = new mongoose.Schema(
   }
 );
 
+pickupSchema.index({ user: 1, createdAt: -1 });
+pickupSchema.index({ status: 1 });
+pickupSchema.index({ assignedCollector: 1, status: 1 });
+pickupSchema.index({ createdAt: -1 });
+
 
 pickupSchema.virtual('requestId').get(function () {
   return `PK-${this._id.toString().slice(-6).toUpperCase()}`;
