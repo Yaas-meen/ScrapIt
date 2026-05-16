@@ -1,28 +1,38 @@
 {
   "name": "scrapit",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "ScrapIt— Recycling Pickup Scheduling Platform",
+  "private": true,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Yaas-meen/ScrapIt.git"
   },
-
   "bugs": {
     "url": "https://github.com/Yaas-meen/ScrapIt./issues"
   },
-
   "homepage": "https://github.com/Yaas-meen/ScrapIt.#readme",
-
   "scripts": {
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "dev:server": "npm --prefix server run dev",
     "dev:client": "npm --prefix client run dev",
     "install:all": "npm install && npm --prefix server install && npm --prefix client install",
-    "build": "npm --prefix client run build"
+    "build": "npm --prefix client run build",
+    "lint": "eslint . --ext .js,.jsx --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --ext .js,.jsx --fix",
+    "format": "prettier --write \"**/*.{js,jsx,json,css,md}\"",
+    "format:check": "prettier --check \"**/*.{js,jsx,json,css,md}\"",
+    "prepare": "husky"
   },
-
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "@commitlint/cli": "^21.0.1",
+    "@commitlint/config-conventional": "^21.0.1",
+    "@eslint/js": "^9.39.4",
+    "concurrently": "^8.2.2",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.6.0",
+    "prettier": "^3.8.3"
   }
 }
