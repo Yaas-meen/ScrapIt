@@ -55,10 +55,10 @@ collectorSchema.virtual('activePickups', {
   match: { status: { $in: ['Approved', 'In Progress'] } },
 });
 
-collectorSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+collectorSchema.pre('save', async function () {
+  if (!this.isModified('password')) return;
+
   this.password = await bcrypt.hash(this.password, 12);
-  next();
 });
 
 collectorSchema.methods.comparePassword = async function (enteredPassword) {
