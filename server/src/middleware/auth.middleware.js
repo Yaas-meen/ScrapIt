@@ -61,9 +61,14 @@ export const protect = asyncHandler(async (req, res, next) => {
     });
   }
 
+  if (!account.role) {
+    account.role = decoded.role;
+  }
   req.user = account;
   next();
 });
+
+
 
 
 export const authorize = (...roles) => {

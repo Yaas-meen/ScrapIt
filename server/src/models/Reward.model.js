@@ -44,5 +44,8 @@ const rewardSchema = new mongoose.Schema(
   }
 );
 
+rewardSchema.index({ user: 1, createdAt: -1 });
+rewardSchema.index({ type: 1 });
+
 const Reward = mongoose.model('Reward', rewardSchema);
 export default Reward;
