@@ -12,12 +12,14 @@
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --forceExit",
     "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch --runInBand"
   },
-"jest": {
-  "testEnvironment": "node",
-  "transform": {},
-  "testMatch": ["**/tests/**/*.test.js"],
-  "testTimeout": 30000
-},
+  "jest": {
+    "testEnvironment": "node",
+    "transform": {},
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ],
+    "testTimeout": 30000
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
