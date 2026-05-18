@@ -1,4 +1,4 @@
-#  ScrapIt — Recycling Pickup Scheduling Platform
+<!-- #  ScrapIt — Recycling Pickup Scheduling Platform
 
 ScrapIt is a full-stack MERN web application designed to encourage sustainable waste management by allowing users to schedule recycling pickups, upload recyclable waste images, earn reward points, and redeem coupons.
 
@@ -166,4 +166,4 @@ If you found this project useful:
 - Share feedback
 - Contribute improvements
 
----
+--- -->
