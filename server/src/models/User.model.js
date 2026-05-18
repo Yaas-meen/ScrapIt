@@ -61,9 +61,17 @@ const userSchema = new mongoose.Schema(
   }
 );
 
+// Virtual so frontend can use user.name or user.fullName interchangeably
+userSchema.virtual('name').get(function () {
+  return this.fullName;
+});
+
 // userSchema.index({ email: 1 });
 userSchema.index({ role: 1 });
 userSchema.index({ createdAt: -1 });
+
+userSchema.set('toJSON', { virtuals: true });
+userSchema.set('toObject', { virtuals: true });
 
 userSchema.pre('save', async function () {
   if (!this.isModified('password')) return;

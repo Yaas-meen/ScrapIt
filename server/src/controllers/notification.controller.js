@@ -2,10 +2,7 @@ import Notification from '../models/Notification.model.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { successResponse, errorResponse } from '../utils/apiResponse.js';
 
-// ─────────────────────────────────────────────
-// USER — Get own notifications
-// GET /api/v1/notifications/my
-// ─────────────────────────────────────────────
+
 export const getMyNotifications = asyncHandler(async (req, res) => {
   const { page = 1, limit = 20, unreadOnly } = req.query;
 
@@ -29,18 +26,16 @@ export const getMyNotifications = asyncHandler(async (req, res) => {
   return successResponse(res, 200, 'Notifications retrieved', {
     notifications,
     unreadCount,
-    pagination: {
-      total,
-      page: Number(page),
-      pages: Math.ceil(total / Number(limit)),
+    meta: {
+    unreadCount,
+    page:  Number(page),
+    pages: Math.ceil(total / Number(limit)),
+    total,
     },
   });
 });
 
-// ─────────────────────────────────────────────
-// USER — Mark a single notification as read
-// PATCH /api/v1/notifications/:id/read
-// ─────────────────────────────────────────────
+
 export const markAsRead = asyncHandler(async (req, res) => {
   const notification = await Notification.findById(req.params.id);
 
@@ -62,10 +57,7 @@ export const markAsRead = asyncHandler(async (req, res) => {
   return successResponse(res, 200, 'Notification marked as read', notification);
 });
 
-// ─────────────────────────────────────────────
-// USER — Mark all notifications as read
-// PATCH /api/v1/notifications/read-all
-// ─────────────────────────────────────────────
+
 export const markAllAsRead = asyncHandler(async (req, res) => {
   const result = await Notification.updateMany(
     { user: req.user._id, isRead: false },
@@ -77,10 +69,7 @@ export const markAllAsRead = asyncHandler(async (req, res) => {
   });
 });
 
-// ─────────────────────────────────────────────
-// USER — Delete a single notification
-// DELETE /api/v1/notifications/:id
-// ─────────────────────────────────────────────
+
 export const deleteNotification = asyncHandler(async (req, res) => {
   const notification = await Notification.findById(req.params.id);
 
