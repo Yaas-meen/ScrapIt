@@ -48,8 +48,7 @@ export default function UserRegister() {
         phone: form.phone.trim(),
         password: form.password,
       });
-//Must complete profile details to schedule pickups
-
+      // Profile completion is required before scheduling pickups.
       navigate('/profile?setup=1', { replace: true });
     } catch (err) {
       setError(err?.message || 'Registration failed');
@@ -225,8 +224,7 @@ function Banner({ tone = 'error', children }) {
   );
 }
 
-// Password Strength indicator on client
-
+/** Lightweight strength indicator — purely advisory; real check is server-side. */
 function PasswordStrength({ password }) {
   if (!password) return null;
   const checks = [
@@ -250,6 +248,7 @@ function PasswordStrength({ password }) {
   );
 }
 
+/** Client-side form validation */
 function validate(form) {
   if (!form.name.trim() || form.name.trim().length < 2)
     return { ok: false, message: 'Please enter your name.' };

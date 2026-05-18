@@ -2,10 +2,10 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { findMockUserByEmail } from '../mock/mockUsers';
 import { findMockCollectorByEmail } from '../mock/mockCollectors';
-import { shouldFallback } from './_fallback';
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 
+// ---- Token helpers ---------------------------------------------------------
 
 function decodeJwt(token) {
   if (!token || typeof token !== 'string') return null;
@@ -23,6 +23,7 @@ function expiryFromToken(token) {
   return claims?.exp ? claims.exp * 1000 : null;
 }
 
+/** Build a mock JWT-ish string with an `exp` claim 15 min out. */
 function mockToken(userId) {
   const payload = {
     sub: userId,
@@ -33,14 +34,16 @@ function mockToken(userId) {
   return `mock.${btoa(JSON.stringify(payload))}.signature`;
 }
 
+// ---- API helpers (lazy-imported to avoid circular deps with axios) ---------
 
 async function postLogin(path, body) {
   if (USE_MOCK) throw new Error('mock-forced');
   const { default: client } = await import('../api/axiosClient');
   const { data } = await client.post(path, body);
-  return data?.data;
+  return data?.data; // unwrap success envelope
 }
 
+// ---- Store -----------------------------------------------------------------
 
 export const useAuthStore = create(
   persist(
@@ -48,16 +51,18 @@ export const useAuthStore = create(
       user: null,
       accessToken: null,
       tokenExpiresAt: null,
-      isHydrating: true,        
+      isHydrating: true,        // flipped to false after rehydrate
       isAuthenticating: false,
       error: null,
 
+      // -------- Selectors / helpers --------
       isTokenExpired: () => {
         const exp = get().tokenExpiresAt;
         return exp != null && Date.now() >= exp;
       },
       isAuthenticated: () => !!get().user && !!get().accessToken && !get().isTokenExpired(),
 
+      // -------- Mutations --------
       setAuth: ({ user, accessToken }) =>
         set({
           user,
@@ -71,6 +76,13 @@ export const useAuthStore = create(
 
       setError: (error) => set({ error }),
 
+      // -------- Login flows --------
+      /**
+       * Generic login wrapper that:
+       *   1. Hits the real endpoint
+       *   2. On network/connection failure, falls back to mock data
+       *   3. Validates `expectedRole` server-side AND client-side
+       */
       _login: async ({ endpoint, email, password, expectedRole, mockResolver }) => {
         set({ isAuthenticating: true, error: null });
         try {
@@ -78,7 +90,12 @@ export const useAuthStore = create(
           try {
             data = await postLogin(endpoint, { email, password });
           } catch (err) {
-            if (!shouldFallback(err)) throw err;
+            const networkish =
+              err?.message === 'mock-forced' ||
+              err?.code === 'ERR_NETWORK' ||
+              err?.code === 'ECONNREFUSED' ||
+              err?.response == null;
+            if (!networkish) throw err;
             // Fall back to mock resolver
             data = mockResolver({ email, password });
           }
@@ -149,7 +166,14 @@ export const useAuthStore = create(
           },
         }),
 
-
+      /**
+       * registerUser — POST /auth/register (API_CONTRACTS §3.1).
+       * Only creates end-user accounts (role='user'). Admin and Collector
+       * accounts are seeded by an existing admin from the admin portal.
+       *
+       * In mock mode: rejects if email is already in use; otherwise builds
+       * an in-memory user and authenticates immediately.
+       */
       registerUser: async ({ name, email, phone, password }) => {
         set({ isAuthenticating: true, error: null });
         try {
@@ -160,7 +184,12 @@ export const useAuthStore = create(
             const res = await client.post('/auth/register', { name, email, phone, password });
             data = res?.data?.data;
           } catch (err) {
-            if (!shouldFallback(err)) throw err;
+            const networkish =
+              err?.message === 'mock-forced' ||
+              err?.code === 'ERR_NETWORK' ||
+              err?.code === 'ECONNREFUSED' ||
+              err?.response == null;
+            if (!networkish) throw err;
             // Mock fallback registration
             if (findMockUserByEmail(email)) {
               throw new Error('An account with that email already exists.');
@@ -215,12 +244,9 @@ export const useAuthStore = create(
     {
       name: 'scrapit-auth',
       storage: createJSONStorage(() => sessionStorage),
-
       // Persist user + tokenExpiresAt only. Access token stays in memory.
-      
       partialize: (s) => ({ user: s.user, tokenExpiresAt: s.tokenExpiresAt }),
       onRehydrateStorage: () => (state) => {
-
         // After rehydrate, clear the hydration flag.
         state && (state.isHydrating = false);
       },
