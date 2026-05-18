@@ -14,15 +14,20 @@ import {
   uploadPickupImage,
   handleUploadError,
 } from '../middleware/upload.middleware.js';
+import validate from '../middleware/validate.middleware.js';
+import {
+  updateStatusSchema,
+  assignCollectorSchema,
+} from '../validators/pickup.validators.js';
 
 const router = express.Router();
 
 router.use(protect);
 
-
 router.get('/my', authorize('user'), getMyPickups);
 router.get('/assigned', authorize('collector'), getAssignedPickups);
 router.get('/', authorize('admin'), getAllPickups);
+
 
 router.post(
   '/',
@@ -33,8 +38,18 @@ router.post(
 );
 
 router.get('/:id', authorize('user', 'admin', 'collector'), getPickupById);
-router.patch('/:id/status', authorize('admin', 'collector'), updatePickupStatus);
-router.patch('/:id/assign', authorize('admin'), assignCollector);
+router.patch(
+  '/:id/status',
+  authorize('admin', 'collector'),
+  validate(updateStatusSchema),
+  updatePickupStatus
+);
+router.patch(
+  '/:id/assign',
+  authorize('admin'),
+  validate(assignCollectorSchema),
+  assignCollector
+);
 router.delete('/:id', authorize('user'), deletePickup);
 
 export default router;

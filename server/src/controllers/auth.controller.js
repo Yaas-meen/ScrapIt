@@ -16,7 +16,7 @@ const sendTokenResponse = (res, statusCode, message, account, accessToken, refre
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
-    maxAge: 7 * 24 * 60 * 60 * 1000, 
+    maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
   return successResponse(res, statusCode, message, {
@@ -25,21 +25,8 @@ const sendTokenResponse = (res, statusCode, message, account, accessToken, refre
   });
 };
 
-
 export const registerUser = asyncHandler(async (req, res) => {
-  const { fullName, email, phone, password, confirmPassword } = req.body;
-
-  if (!fullName || !email || !password) {
-    return errorResponse(res, 400, 'Full name, email and password are required');
-  }
-
-  if (password !== confirmPassword) {
-    return errorResponse(res, 400, 'Passwords do not match');
-  }
-
-  if (password.length < 6) {
-    return errorResponse(res, 400, 'Password must be at least 6 characters');
-  }
+  const { fullName, email, phone, password } = req.body;
 
   const exists = await User.findOne({ email: email.toLowerCase() });
   if (exists) {
@@ -59,13 +46,8 @@ export const registerUser = asyncHandler(async (req, res) => {
   return sendTokenResponse(res, 201, 'Account created successfully', user, accessToken, refreshToken);
 });
 
-
 export const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-
-  if (!email || !password) {
-    return errorResponse(res, 400, 'Email and password are required');
-  }
 
   const user = await findAccountByEmail(email.toLowerCase(), 'user');
 
@@ -82,13 +64,8 @@ export const loginUser = asyncHandler(async (req, res) => {
   return sendTokenResponse(res, 200, 'Login successful', user, accessToken, refreshToken);
 });
 
-
 export const loginAdmin = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-
-  if (!email || !password) {
-    return errorResponse(res, 400, 'Email and password are required');
-  }
 
   const admin = await findAccountByEmail(email.toLowerCase(), 'user');
 
@@ -105,13 +82,8 @@ export const loginAdmin = asyncHandler(async (req, res) => {
   return sendTokenResponse(res, 200, 'Admin login successful', admin, accessToken, refreshToken);
 });
 
-
 export const loginCollector = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-
-  if (!email || !password) {
-    return errorResponse(res, 400, 'Email and password are required');
-  }
 
   const collector = await findAccountByEmail(email.toLowerCase(), 'collector');
 
@@ -128,7 +100,6 @@ export const loginCollector = asyncHandler(async (req, res) => {
   return sendTokenResponse(res, 200, 'Collector login successful', collector, accessToken, refreshToken);
 });
 
-
 export const refreshToken = asyncHandler(async (req, res) => {
 
   const token = req.cookies?.refreshToken || req.body?.refreshToken;
@@ -136,7 +107,6 @@ export const refreshToken = asyncHandler(async (req, res) => {
   if (!token) {
     return errorResponse(res, 401, 'No refresh token provided');
   }
-
 
   let decoded;
   try {
@@ -171,8 +141,8 @@ export const refreshToken = asyncHandler(async (req, res) => {
   );
 });
 
-
 export const logout = asyncHandler(async (req, res) => {
+
   const token = req.cookies?.refreshToken || req.body?.refreshToken;
 
   if (token) {
@@ -188,7 +158,6 @@ export const logout = asyncHandler(async (req, res) => {
     }
   }
 
-  
   res.clearCookie('refreshToken', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
