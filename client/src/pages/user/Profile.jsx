@@ -3,7 +3,7 @@ import { CheckCircle2 } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { userApi }      from '../../api/userApi';
 import Button           from '../../components/ui/Button';
-import { getInitials }  from '../../utils/generateBadgeColor';
+import { getInitials }  from '../../utils/generateBadgerColor';
 
 function Field({ label, children }) {
   return (
