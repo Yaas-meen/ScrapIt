@@ -277,9 +277,10 @@ export default function Rewards() {
   const [modal, setModal] = useState(false);
   const [revealed, setRevealed] = useState({});
 
-  useEffect(() => {
-    if (user?.id) fetchHistory(user.id);
-  }, [user?.id]);
+useEffect(() => {
+  const uid = user?.id || user?._id;
+  if (uid) fetchHistory(uid);
+}, [user?.id, user?._id]);
 
   const balance = user?.points || 0;
   const earned  = user?.pointsEarned  || user?.totalPointsEarned  || 0;

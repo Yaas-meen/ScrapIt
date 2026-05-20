@@ -157,8 +157,13 @@ export const useAuthStore = create(
           try {
             if (USE_MOCK) throw new Error('mock-forced');
             const { default: client } = await import('../api/axiosClient');
-            const res = await client.post('/auth/register', { name, email, phone, password });
-            data = res?.data?.data;
+            const res = await client.post('/auth/register', {
+            fullName:        name,
+            email,
+            phone,
+            password,
+            confirmPassword: password,
+            });            data = res?.data?.data;
           } catch (err) {
             if (!shouldFallback(err)) throw err;
             // Mock fallback registration

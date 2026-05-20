@@ -1,105 +1,142 @@
-import { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { ShieldCheck, Mail, Lock, AlertCircle } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
-import Button from '../../components/ui/Button';
-import Input from '../../components/ui/Input';
+import { useState }          from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import {
+  ShieldCheck, Eye, EyeOff,
+  AlertCircle, Loader2,
+} from 'lucide-react';
+import { useAuthStore } from '../../store/useAuthStore';
 
 export default function AdminLogin() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { loginAdmin, isAuthenticating, error, setError } = useAuth();
+  const navigate         = useNavigate();
+  const loginAdmin       = useAuthStore((s) => s.loginAdmin);
+  const isAuthenticating = useAuthStore((s) => s.isAuthenticating);
 
-  const [form, setForm] = useState({ email: 'admin@scrapit.ng', password: 'admin123' });
-  const [localError, setLocalError] = useState('');
-
-  const handleChange = (e) => {
-    setLocalError('');
-    setError(null);
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
+  const [email,        setEmail]        = useState('');
+  const [password,     setPassword]     = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error,        setError]        = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLocalError('');
-    if (!form.email.trim()) return setLocalError('Email is required.');
-    if (!form.password) return setLocalError('Password is required.');
-
-    const ok = await loginAdmin({ email: form.email.trim().toLowerCase(), password: form.password });
-    if (ok) {
-      const from = location.state?.from?.pathname || '/admin/dashboard';
-      navigate(from, { replace: true });
+    if (isAuthenticating) return;
+    setError(null);
+    try {
+      await loginAdmin(email.trim(), password);
+      navigate('/admin/dashboard', { replace: true });
+    } catch (err) {
+      setError(err?.message || 'Invalid admin credentials.');
     }
   };
 
-  const displayError = localError || error;
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-ink-100 p-6">
-      <div className="w-full max-w-sm">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center bg-ink-800 p-3 rounded-2xl mb-4">
-            <ShieldCheck size={28} className="text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-ink-900">Admin Portal</h1>
-          <p className="text-ink-500 text-sm mt-1">ScrapIt Operations Dashboard</p>
-        </div>
+    <div className="min-h-screen bg-ink-50 flex flex-col">
+      <div className="flex-1 flex items-center justify-center px-4 py-10">
+        <div className="w-full max-w-md">
 
-        <div className="bg-white rounded-2xl shadow-sm border border-ink-200 p-8">
-          {displayError && (
-            <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-5 text-sm text-red-700">
-              <AlertCircle size={16} className="mt-0.5 shrink-0" />
-              <span>{displayError}</span>
+          <header className="mb-8 text-center">
+            <div className="w-14 h-14 mx-auto rounded-2xl bg-purple-100
+              text-purple-700 grid place-items-center mb-4">
+              <ShieldCheck size={28} />
             </div>
-          )}
+            <h1 className="text-2xl font-bold tracking-tight text-ink-800">
+              Admin sign-in
+            </h1>
+            <p className="text-sm text-ink-500 mt-1">
+              ScrapIt operations dashboard.
+            </p>
+          </header>
 
-          <form onSubmit={handleSubmit} noValidate className="space-y-4">
-            <Input
-              label="Admin email"
-              name="email"
-              type="email"
-              placeholder="admin@scrapit.ng"
-              icon={Mail}
-              value={form.email}
-              onChange={handleChange}
-              autoComplete="email"
-              required
-            />
-            <Input
-              label="Password"
-              name="password"
-              type="password"
-              placeholder="Enter your password"
-              icon={Lock}
-              value={form.password}
-              onChange={handleChange}
-              autoComplete="current-password"
-              required
-            />
-            <Button
+          <form
+            onSubmit={handleSubmit}
+            noValidate
+            className="bg-white rounded-2xl shadow-sm border border-ink-100
+              p-6 sm:p-7 space-y-5"
+          >
+            {error && (
+              <div className="flex items-start gap-2 text-xs rounded-xl
+                border px-3 py-2.5 bg-red-50 text-red-700 border-red-200">
+                <AlertCircle size={14} className="mt-0.5 shrink-0" />
+                {error}
+              </div>
+            )}
+
+            {/* Email */}
+            <div>
+              <label htmlFor="admin-email"
+                className="block text-sm font-medium text-ink-800 mb-1.5">
+                Email
+              </label>
+              <input
+                id="admin-email"
+                type="email"
+                autoComplete="email"
+                inputMode="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@scrapit.com"
+                className={inputCls}
+              />
+            </div>
+
+            {/* Password */}
+            <div>
+              <label htmlFor="admin-password"
+                className="block text-sm font-medium text-ink-800 mb-1.5">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  id="admin-password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className={`${inputCls} pr-10`}
+                />
+                <button
+                  type="button"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2
+                    p-1.5 rounded-lg text-ink-400 hover:bg-ink-100"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+
+            {/* Submit */}
+            <button
               type="submit"
-              variant="primary"
-              size="lg"
-              loading={isAuthenticating}
-              className="w-full !bg-ink-800 hover:!bg-ink-900"
+              disabled={isAuthenticating || !email || !password}
+              className="w-full inline-flex items-center justify-center
+                gap-2 h-11 rounded-xl bg-purple-600 hover:bg-purple-700
+                text-white font-semibold text-sm transition
+                disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Sign in to Admin
-            </Button>
+              {isAuthenticating
+                ? <><Loader2 size={16} className="animate-spin" /> Signing in…</>
+                : 'Sign in to Admin'
+              }
+            </button>
+
+            <p className="text-center text-xs text-ink-400 pt-1">
+              <Link to="/login" className="hover:text-ink-600">
+                ← Back to user sign-in
+              </Link>
+            </p>
           </form>
 
-          {/* Demo hint */}
-          <div className="mt-5 bg-ink-50 rounded-xl p-3 text-xs text-ink-500 text-center">
-            Demo: <span className="font-mono font-medium text-ink-700">admin@scrapit.ng</span> / <span className="font-mono font-medium text-ink-700">admin123</span>
-          </div>
         </div>
-
-        <p className="text-center text-xs text-ink-400 mt-5">
-          <Link to="/login" className="hover:underline">User portal</Link>
-          {' · '}
-          <Link to="/collector/login" className="hover:underline">Collector portal</Link>
-        </p>
       </div>
     </div>
   );
 }
+
+const inputCls =
+  'w-full h-11 rounded-xl border border-ink-200 px-3 text-sm bg-white ' +
+  'focus:border-purple-500 focus:ring-2 focus:ring-purple-100 ' +
+  'outline-none transition';

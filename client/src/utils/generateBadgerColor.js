@@ -46,6 +46,7 @@ function hashString(str = '') {
 export function generateBadgeColor(value, kind = 'auto') {
   if (value == null) return NEUTRAL;
   const v = String(value);
+
   if (kind === 'status' || (kind === 'auto' && STATUS_COLOR[v]))
     return STATUS_COLOR[v] || NEUTRAL;
   if (kind === 'waste' || (kind === 'auto' && WASTE_COLOR[v.toLowerCase()]))
@@ -54,13 +55,18 @@ export function generateBadgeColor(value, kind = 'auto') {
     return ROLE_COLOR[v.toLowerCase()] || NEUTRAL;
   if (kind === 'reward' || (kind === 'auto' && REWARD_COLOR[v.toLowerCase()]))
     return REWARD_COLOR[v.toLowerCase()] || NEUTRAL;
+
   return FALLBACK_PALETTE[hashString(v) % FALLBACK_PALETTE.length];
 }
 
-// Used by the Avatar component
 export function getInitials(name = '') {
   return (
-    name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2) || '?'
+    name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2) || '?'
   );
 }
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link }                         from 'react-router-dom';
 import {
   Package, Clock, CheckCircle2,
   ArrowRight, Bell, Gift,
@@ -9,19 +9,18 @@ import { usePickupStore }       from '../../store/usePickupStore';
 import { useNotificationStore } from '../../store/useNotificationStore';
 import StatusBadge   from '../../components/ui/StatusBadge';
 import Skeleton      from '../../components/ui/Skeleton';
+import ErrorState    from '../../components/ui/ErrorState';
 import { formatDate, formatTimeAgo, getGreeting } from '../../utils/formatDate';
-import { formatPoints, formatCurrency } from '../../utils/formatCurrency';
+import { formatCurrency }        from '../../utils/formatCurrency';
 
-// Animated number counter
 function useCountUp(target, duration = 1000) {
   const [count, setCount] = useState(0);
   useEffect(() => {
-    if (!target) return;
+    if (!target) { setCount(0); return; }
     let raf;
-    const start     = performance.now();
-    const animate   = (now) => {
-      const elapsed = now - start;
-      const progress = Math.min(elapsed / duration, 1);
+    const start   = performance.now();
+    const animate = (now) => {
+      const progress = Math.min((now - start) / duration, 1);
       setCount(Math.floor(progress * target));
       if (progress < 1) raf = requestAnimationFrame(animate);
     };
@@ -31,28 +30,51 @@ function useCountUp(target, duration = 1000) {
   return count;
 }
 
-function getGreetingText() {
-  const h = new Date().getHours();
-  if (h < 12) return 'Good morning';
-  if (h < 17) return 'Good afternoon';
-  return 'Good evening';
+// Skeleton for stat cards
+function StatCardSkeleton() {
+  return (
+    <div className="bg-white rounded-2xl border border-ink-100 p-4">
+      <Skeleton className="w-8 h-8 rounded-xl mb-3" />
+      <Skeleton className="h-8 w-16 mb-1.5" />
+      <Skeleton className="h-3 w-24" />
+    </div>
+  );
+}
+
+// Skeleton for table rows
+function TableRowSkeleton() {
+  return (
+    <tr className="border-b border-ink-100">
+      {[1,2,3,4,5].map((i) => (
+        <td key={i} className="p-3">
+          <Skeleton className="h-4 w-full rounded-lg" />
+        </td>
+      ))}
+    </tr>
+  );
 }
 
 export default function UserDashboard() {
   const user              = useAuthStore((s) => s.user);
+  const refreshUser       = useAuthStore((s) => s.refreshUser);
   const myPickups         = usePickupStore((s) => s.myPickups);
   const fetchMyPickups    = usePickupStore((s) => s.fetchMyPickups);
-  const isLoading         = usePickupStore((s) => s.isLoading);
+  const pickupLoading     = usePickupStore((s) => s.isLoading);
+  const pickupError       = usePickupStore((s) => s.error);
   const notifications     = useNotificationStore((s) => s.items);
   const fetchNotifs       = useNotificationStore((s) => s.fetch);
+  const notifLoading      = useNotificationStore((s) => s.isLoading);
   const unread            = useNotificationStore((s) => s.meta.unreadCount);
 
-  const animatedPoints    = useCountUp(user?.points || 0);
+  const animatedPoints = useCountUp(user?.points || 0);
 
-  useEffect(() => {
-    if (user?.id) fetchMyPickups(user.id);
+  const load = () => {
+    refreshUser().catch(() => {});
+    if (user?.id || user?._id) fetchMyPickups(user?.id || user?._id);
     fetchNotifs();
-  }, [user?.id]);
+  };
+
+  useEffect(() => { load(); }, [user?.id, user?._id]);
 
   const stats = {
     total:     myPickups.length,
@@ -60,12 +82,12 @@ export default function UserDashboard() {
     completed: myPickups.filter((p) => p.status === 'Completed').length,
   };
 
-  const recent        = [...myPickups]
+  const recent       = [...myPickups]
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 5);
 
-  const recentNotifs  = notifications
-    .filter((n) => !n.readAt)
+  const recentNotifs = notifications
+    .filter((n) => !n.readAt && !n.isRead)
     .slice(0, 3);
 
   const name = user?.name || user?.fullName || 'there';
@@ -75,7 +97,7 @@ export default function UserDashboard() {
       {/* Greeting */}
       <div>
         <h1 className="text-2xl font-bold text-ink-800">
-          {getGreetingText()}, {name.split(' ')[0]} 👋
+          {getGreeting()}, {name.split(' ')[0]} 👋
         </h1>
         <p className="text-sm text-ink-500 mt-1">
           Here's what's happening with your recycling.
@@ -83,9 +105,11 @@ export default function UserDashboard() {
       </div>
 
       {/* Points hero */}
-      <div className="rounded-2xl p-6 bg-gradient-to-br from-gold-500 to-gold-600
-        text-white shadow-soft-lg">
-        <p className="text-sm font-medium text-gold-100 mb-1">Your points balance</p>
+      <div className="rounded-2xl p-6 bg-gradient-to-br from-gold-500
+        to-gold-600 text-white shadow-soft-lg">
+        <p className="text-sm font-medium text-gold-100 mb-1">
+          Your points balance
+        </p>
         <p className="text-5xl font-bold tabular-nums tracking-tight">
           {animatedPoints.toLocaleString()}
           <span className="text-2xl font-medium text-gold-200 ml-2">pts</span>
@@ -93,38 +117,45 @@ export default function UserDashboard() {
         <p className="text-sm text-gold-200 mt-1">
           ≈ {formatCurrency(user?.points || 0)} airtime value
         </p>
-        <Link
-          to="/rewards"
+        <Link to="/rewards"
           className="mt-4 inline-flex items-center gap-2 bg-white/20
-            hover:bg-white/30 text-white text-sm font-semibold px-4 h-9
-            rounded-xl transition"
-        >
+            hover:bg-white/30 text-white text-sm font-semibold
+            px-4 h-9 rounded-xl transition">
           <Gift size={15} />
           Redeem rewards
         </Link>
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { label: 'Total requests', value: stats.total,     icon: Package,      color: 'text-eco-600',  bg: 'bg-eco-50'  },
-          { label: 'Pending',        value: stats.pending,   icon: Clock,        color: 'text-gold-600', bg: 'bg-gold-50' },
-          { label: 'Completed',      value: stats.completed, icon: CheckCircle2, color: 'text-eco-600',  bg: 'bg-eco-50'  },
-        ].map(({ label, value, icon: Icon, color, bg }) => (
-          <div key={label}
-            className="bg-white rounded-2xl border border-ink-100 p-4 shadow-sm">
-            <div className={`w-8 h-8 rounded-xl ${bg} ${color}
-              grid place-items-center mb-3`}>
-              <Icon size={16} />
+      {pickupLoading ? (
+        <div className="grid grid-cols-3 gap-3">
+          {[1,2,3].map((i) => <StatCardSkeleton key={i} />)}
+        </div>
+      ) : (
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { label: 'Total requests', value: stats.total,     icon: Package,      color: 'text-eco-600',  bg: 'bg-eco-50'  },
+            { label: 'Pending',        value: stats.pending,   icon: Clock,        color: 'text-gold-600', bg: 'bg-gold-50' },
+            { label: 'Completed',      value: stats.completed, icon: CheckCircle2, color: 'text-eco-600',  bg: 'bg-eco-50'  },
+          ].map(({ label, value, icon: Icon, color, bg }) => (
+            <div key={label}
+              className="bg-white rounded-2xl border border-ink-100 p-4 shadow-sm">
+              <div className={`w-8 h-8 rounded-xl ${bg} ${color}
+                grid place-items-center mb-3`}>
+                <Icon size={16} />
+              </div>
+              <p className="text-2xl font-bold text-ink-800 tabular-nums">
+                {value}
+              </p>
+              <p className="text-xs text-ink-500 mt-0.5">{label}</p>
             </div>
-            <p className="text-2xl font-bold text-ink-800 tabular-nums">{value}</p>
-            <p className="text-xs text-ink-500 mt-0.5">{label}</p>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Recent activity */}
-      <div className="bg-white rounded-2xl border border-ink-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-ink-100 shadow-sm
+        overflow-hidden">
         <div className="p-5 flex items-center justify-between border-b border-ink-100">
           <h2 className="font-semibold text-ink-800">Recent activity</h2>
           <Link to="/pickups"
@@ -134,10 +165,17 @@ export default function UserDashboard() {
           </Link>
         </div>
 
-        {isLoading ? (
-          <div className="p-5 space-y-3">
-            {[1,2,3].map((i) => <Skeleton key={i} className="h-10" />)}
-          </div>
+        {pickupLoading ? (
+          <table className="w-full">
+            <tbody>
+              {[1,2,3].map((i) => <TableRowSkeleton key={i} />)}
+            </tbody>
+          </table>
+        ) : pickupError ? (
+          <ErrorState
+            message={pickupError}
+            onRetry={() => fetchMyPickups(user?.id || user?._id)}
+          />
         ) : recent.length === 0 ? (
           <div className="p-10 text-center">
             <p className="text-sm text-ink-400">No pickups yet.</p>
@@ -171,7 +209,7 @@ export default function UserDashboard() {
                     <tr key={id}
                       className="border-b border-ink-100 last:border-0
                         hover:bg-ink-50/60">
-                      <td className="p-3 pl-5 text-ink-600">
+                      <td className="p-3 pl-5 text-ink-600 whitespace-nowrap">
                         {formatDate(date)}
                       </td>
                       <td className="p-3 capitalize text-ink-700">{type}</td>
@@ -193,7 +231,14 @@ export default function UserDashboard() {
       </div>
 
       {/* Notification preview */}
-      {recentNotifs.length > 0 && (
+      {notifLoading ? (
+        <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5">
+          <Skeleton className="h-5 w-32 mb-4" />
+          <div className="space-y-3">
+            {[1,2].map((i) => <Skeleton key={i} className="h-14 rounded-xl" />)}
+          </div>
+        </div>
+      ) : recentNotifs.length > 0 && (
         <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold text-ink-800 flex items-center gap-2">
@@ -216,13 +261,12 @@ export default function UserDashboard() {
               <li key={n.id || n._id}
                 className="flex gap-3 p-3 rounded-xl bg-eco-50/60
                   border border-eco-100">
-                <span className="w-7 h-7 rounded-full bg-eco-100 text-eco-700
-                  grid place-items-center shrink-0 text-xs">
-                  {n.type === 'Completed'    ? '🎉'
-                   : n.type === 'Approved'   ? '✅'
-                   : n.type === 'Rejected'   ? '❌'
-                   : n.type === 'In Progress'? '🚛'
-                   : '🔔'}
+                <span className="w-7 h-7 rounded-full bg-eco-100
+                  text-eco-700 grid place-items-center shrink-0 text-xs">
+                  {n.type === 'Completed' ? '🎉'
+                   : n.type === 'Approved' ? '✅'
+                   : n.type === 'Rejected' ? '❌'
+                   : n.type === 'In Progress' ? '🚛' : '🔔'}
                 </span>
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-ink-800 truncate">

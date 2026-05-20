@@ -1,197 +1,312 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Recycle, User, Mail, Lock, Phone, MapPin, AlertCircle } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
-import Button from '../../components/ui/Button';
-import Input from '../../components/ui/Input';
+import { useMemo, useState }        from 'react';
+import { Link, useNavigate }        from 'react-router-dom';
+import {
+  Recycle, Eye, EyeOff,
+  AlertCircle, Check, Loader2,
+} from 'lucide-react';
+import { useAuthStore } from '../../store/useAuthStore';
+
+const MIN_PASSWORD = 8;
 
 export default function UserRegister() {
-  const navigate = useNavigate();
-  const { registerUser, isAuthenticating, error, setError } = useAuth();
+  const navigate         = useNavigate();
+  const registerUser     = useAuthStore((s) => s.registerUser);
+  const isAuthenticating = useAuthStore((s) => s.isAuthenticating);
 
   const [form, setForm] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
-    password: '',
-    confirmPassword: '',
+    name:    '',
+    email:   '',
+    phone:   '',
+    password:'',
+    confirm: '',
+    accept:  false,
   });
-  const [localError, setLocalError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error,        setError]        = useState(null);
+
+  const patch = (key, value) =>
+    setForm((prev) => ({ ...prev, [key]: value }));
 
   const handleChange = (e) => {
-    setLocalError('');
+    const { name, value, type, checked } = e.target;
     setError(null);
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    patch(name, type === 'checkbox' ? checked : value);
   };
 
-  const handleSubmit = async (e) => {
+  // Client-side validation
+  const validation = useMemo(() => {
+    if (!form.name.trim() || form.name.trim().length < 2)
+      return { ok: false, message: 'Please enter your full name.' };
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim()))
+      return { ok: false, message: 'Please enter a valid email address.' };
+    if (!form.phone.trim() || form.phone.replace(/[^0-9]/g, '').length < 10)
+      return { ok: false, message: 'Please enter a valid phone number.' };
+    if (form.password.length < MIN_PASSWORD)
+      return {
+        ok: false,
+        message: `Password must be at least ${MIN_PASSWORD} characters.`,
+      };
+    if (form.password !== form.confirm)
+      return { ok: false, message: 'Passwords do not match.' };
+    if (!form.accept)
+      return { ok: false, message: 'Please accept the Terms to continue.' };
+    return { ok: true };
+  }, [form]);
+
+  const onSubmit = async (e) => {
     e.preventDefault();
-    setLocalError('');
-
-    if (!form.name.trim()) return setLocalError('Full name is required.');
-    if (!form.email.trim()) return setLocalError('Email is required.');
-    if (!form.password) return setLocalError('Password is required.');
-    if (form.password.length < 6) return setLocalError('Password must be at least 6 characters.');
-    if (form.password !== form.confirmPassword) return setLocalError('Passwords do not match.');
-
-    const ok = await registerUser({
-      name: form.name.trim(),
-      email: form.email.trim().toLowerCase(),
-      phone: form.phone.trim(),
-      address: form.address.trim(),
-      password: form.password,
-    });
-
-    if (ok) navigate('/dashboard');
+    if (isAuthenticating) return;
+    if (!validation.ok) { setError(validation.message); return; }
+    setError(null);
+    try {
+      await registerUser({
+        name:     form.name.trim(),
+        email:    form.email.trim().toLowerCase(),
+        phone:    form.phone.trim(),
+        password: form.password,
+      });
+      navigate('/dashboard', { replace: true });
+    } catch (err) {
+      setError(err?.message || 'Registration failed. Please try again.');
+    }
   };
 
-  const displayError = localError || error;
+  const disabled = isAuthenticating || !validation.ok;
 
   return (
-    <div className="min-h-screen flex">
-      {/* ── Brand panel ── */}
-      <div className="hidden lg:flex lg:w-2/5 bg-eco-600 flex-col justify-center items-center p-12 text-white">
-        <div className="flex items-center gap-3 mb-8">
-          <div className="bg-white/20 p-3 rounded-2xl">
-            <Recycle size={36} className="text-white" />
-          </div>
-          <span className="text-3xl font-bold tracking-tight">ScrapIt</span>
-        </div>
-        <h2 className="text-2xl font-semibold text-center mb-3 leading-snug">
-          Join the recycling movement
-        </h2>
-        <p className="text-eco-100 text-center text-sm leading-relaxed max-w-xs">
-          Create your free account and start earning rewards every time you recycle.
-          Every kilogram counts.
-        </p>
-
-        <div className="mt-10 space-y-3 w-full max-w-xs">
-          {[
-            { icon: '♻️', label: 'Schedule free pickups' },
-            { icon: '🏆', label: 'Earn points & badges' },
-            { icon: '📊', label: 'Track your impact' },
-          ].map(({ icon, label }) => (
-            <div key={label} className="flex items-center gap-3 bg-white/10 rounded-xl px-4 py-3 text-sm">
-              <span className="text-lg">{icon}</span>
-              <span>{label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Form panel ── */}
-      <div className="flex-1 flex items-center justify-center p-6 bg-ink-50">
+    <div className="min-h-screen bg-ink-50 flex flex-col">
+      <div className="flex-1 flex items-center justify-center px-4 py-10">
         <div className="w-full max-w-md">
-          {/* Mobile logo */}
-          <div className="lg:hidden flex items-center gap-2 mb-8 justify-center">
-            <div className="bg-eco-600 p-2 rounded-xl">
-              <Recycle size={22} className="text-white" />
+
+          {/* Header */}
+          <header className="mb-8 text-center">
+            <div className="w-14 h-14 mx-auto rounded-2xl bg-eco-100
+              text-eco-700 grid place-items-center mb-4">
+              <Recycle size={28} />
             </div>
-            <span className="text-xl font-bold text-ink-900">ScrapIt</span>
-          </div>
+            <h1 className="text-2xl font-bold tracking-tight text-ink-800">
+              Create your account
+            </h1>
+            <p className="text-sm text-ink-500 mt-1">
+              Recycle waste, earn points, redeem airtime and gift cards.
+            </p>
+          </header>
 
-          <div className="bg-white rounded-2xl shadow-sm border border-ink-200 p-8">
-            <h1 className="text-2xl font-bold text-ink-900 mb-1">Create account</h1>
-            <p className="text-ink-500 text-sm mb-6">Free · No credit card required</p>
-
-            {displayError && (
-              <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-5 text-sm text-red-700">
-                <AlertCircle size={16} className="mt-0.5 shrink-0" />
-                <span>{displayError}</span>
-              </div>
+          {/* Form */}
+          <form
+            onSubmit={onSubmit}
+            noValidate
+            className="bg-white rounded-2xl shadow-sm border border-ink-100
+              p-6 sm:p-7 space-y-4"
+          >
+            {error && (
+              <Banner tone="error">
+                <AlertCircle size={14} className="mt-0.5 shrink-0" />
+                {error}
+              </Banner>
             )}
 
-            <form onSubmit={handleSubmit} noValidate className="space-y-4">
-              <Input
-                label="Full name"
+            {/* Full name */}
+            <Field label="Full name" htmlFor="reg-name">
+              <input
+                id="reg-name"
                 name="name"
-                placeholder="Ada Okonkwo"
-                icon={User}
-                value={form.name}
-                onChange={handleChange}
+                type="text"
                 autoComplete="name"
                 required
+                value={form.name}
+                onChange={handleChange}
+                placeholder="Adaeze Okafor"
+                className={inputCls}
               />
-              <Input
-                label="Email address"
+            </Field>
+
+            {/* Email */}
+            <Field label="Email" htmlFor="reg-email">
+              <input
+                id="reg-email"
                 name="email"
                 type="email"
-                placeholder="you@example.com"
-                icon={Mail}
+                autoComplete="email"
+                inputMode="email"
+                required
                 value={form.email}
                 onChange={handleChange}
-                autoComplete="email"
-                required
+                placeholder="you@example.com"
+                className={inputCls}
               />
-              <Input
-                label="Phone number"
+            </Field>
+
+            {/* Phone */}
+            <Field
+              label="Phone (Nigeria)"
+              htmlFor="reg-phone"
+              hint="e.g. +234 803 555 0142"
+            >
+              <input
+                id="reg-phone"
                 name="phone"
                 type="tel"
-                placeholder="+234 800 000 0000"
-                icon={Phone}
+                autoComplete="tel"
+                inputMode="tel"
+                required
                 value={form.phone}
                 onChange={handleChange}
-                autoComplete="tel"
+                placeholder="+234..."
+                className={inputCls}
               />
-              <Input
-                label="Address (optional)"
-                name="address"
-                placeholder="12 Green St, Lagos"
-                icon={MapPin}
-                value={form.address}
-                onChange={handleChange}
-              />
-              <Input
-                label="Password"
-                name="password"
-                type="password"
-                placeholder="At least 6 characters"
-                icon={Lock}
-                value={form.password}
-                onChange={handleChange}
+            </Field>
+
+            {/* Password */}
+            <Field
+              label="Password"
+              htmlFor="reg-password"
+              hint={`At least ${MIN_PASSWORD} characters`}
+            >
+              <div className="relative">
+                <input
+                  id="reg-password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  required
+                  value={form.password}
+                  onChange={handleChange}
+                  className={`${inputCls} pr-10`}
+                />
+                <button
+                  type="button"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2
+                    p-1.5 rounded-lg text-ink-400 hover:bg-ink-100"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+              <PasswordStrength password={form.password} />
+            </Field>
+
+            {/* Confirm password */}
+            <Field label="Confirm password" htmlFor="reg-confirm">
+              <input
+                id="reg-confirm"
+                name="confirm"
+                type={showPassword ? 'text' : 'password'}
                 autoComplete="new-password"
                 required
-              />
-              <Input
-                label="Confirm password"
-                name="confirmPassword"
-                type="password"
-                placeholder="Repeat your password"
-                icon={Lock}
-                value={form.confirmPassword}
+                value={form.confirm}
                 onChange={handleChange}
-                autoComplete="new-password"
-                required
+                className={inputCls}
               />
+            </Field>
 
-              <Button
-                type="submit"
-                variant="primary"
-                size="lg"
-                loading={isAuthenticating}
-                className="w-full mt-2"
-              >
-                Create account
-              </Button>
-            </form>
+            {/* Terms */}
+            <label className="flex items-start gap-2.5 select-none cursor-pointer">
+              <input
+                type="checkbox"
+                name="accept"
+                checked={form.accept}
+                onChange={handleChange}
+                className="mt-0.5 w-4 h-4 rounded border-ink-300
+                  text-eco-600 focus:ring-eco-500"
+              />
+              <span className="text-xs text-ink-600">
+                I agree to the{' '}
+                <Link to="/terms" className="text-eco-700 hover:underline">
+                  Terms
+                </Link>{' '}
+                and{' '}
+                <Link to="/privacy" className="text-eco-700 hover:underline">
+                  Privacy Policy
+                </Link>
+                .
+              </span>
+            </label>
 
-            <p className="text-center text-sm text-ink-500 mt-6">
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={disabled}
+              className="w-full inline-flex items-center justify-center
+                gap-2 h-11 rounded-xl bg-eco-600 hover:bg-eco-700
+                text-white font-semibold text-sm transition
+                disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isAuthenticating && (
+                <Loader2 size={16} className="animate-spin" />
+              )}
+              {isAuthenticating ? 'Creating account…' : 'Create account'}
+            </button>
+
+            {/* Sign-in link */}
+            <p className="text-center text-sm text-ink-600 pt-1">
               Already have an account?{' '}
-              <Link to="/login" className="text-eco-600 font-medium hover:underline">
+              <Link
+                to="/login"
+                className="text-eco-700 font-semibold hover:underline"
+              >
                 Sign in
               </Link>
             </p>
-          </div>
+          </form>
 
-          <p className="text-center text-xs text-ink-400 mt-5">
-            Admin?{' '}
-            <Link to="/admin/login" className="text-ink-600 hover:underline">Sign in here</Link>
-            {' · '}
-            <Link to="/collector/login" className="text-ink-600 hover:underline">Collector portal</Link>
-          </p>
         </div>
       </div>
     </div>
+  );
+}
+
+// ── Shared styles ─────────────────────────────────────────────
+const inputCls =
+  'w-full h-11 rounded-xl border border-ink-200 px-3 text-sm bg-white ' +
+  'focus:border-eco-500 focus:ring-2 focus:ring-eco-100 outline-none transition';
+
+// ── Sub-components ────────────────────────────────────────────
+function Field({ label, htmlFor, hint, children }) {
+  return (
+    <div>
+      <div className="flex items-baseline justify-between mb-1.5">
+        <label htmlFor={htmlFor} className="text-sm font-medium text-ink-800">
+          {label}
+        </label>
+        {hint && <span className="text-xs text-ink-400">{hint}</span>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function Banner({ tone = 'error', children }) {
+  const tones = {
+    error: 'bg-red-50  text-red-700  border-red-200',
+    warn:  'bg-amber-50 text-amber-700 border-amber-200',
+  };
+  return (
+    <div className={`flex items-start gap-2 text-xs rounded-xl border
+      px-3 py-2 ${tones[tone]}`}>
+      {children}
+    </div>
+  );
+}
+
+function PasswordStrength({ password }) {
+  if (!password) return null;
+  const checks = [
+    { ok: password.length >= MIN_PASSWORD, label: `${MIN_PASSWORD}+ chars`   },
+    { ok: /[A-Z]/.test(password),          label: 'Uppercase'                 },
+    { ok: /[0-9]/.test(password),          label: 'Number'                    },
+    { ok: /[^A-Za-z0-9]/.test(password),   label: 'Symbol'                   },
+  ];
+  return (
+    <ul className="mt-2 grid grid-cols-2 gap-y-1 text-[11px] text-ink-500">
+      {checks.map((c) => (
+        <li key={c.label}
+          className={`flex items-center gap-1.5 ${c.ok ? 'text-eco-700' : ''}`}>
+          <Check size={12} className={c.ok ? 'opacity-100' : 'opacity-25'} />
+          {c.label}
+        </li>
+      ))}
+    </ul>
   );
 }

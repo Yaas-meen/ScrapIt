@@ -90,35 +90,50 @@ export default function SchedulePickup() {
 
   // ── Submit ──────────────────────────────────────────────────
   const handleSubmit = async () => {
-    setError('');
-    try {
-      const finalAddress = useDefault ? defaultAddress : address;
-      const firstItem    = validItems[0];
+  setError('');
 
-      await createPickup({
-        userId:      user?.id,
-        userName:    user?.name || user?.fullName,
-        userPhone:   user?.phone,
-        // Mock shape
-        wasteType:   firstItem.type,
-        weight:      Number(firstItem.weight),
-        scheduledFor: new Date(pickupDate).toISOString(),
-        address:     finalAddress,
-        imageUrls:   imagePreview ? [imagePreview] : [],
-        // API shape (when mock is disabled)
-        wasteItems:  validItems.map((it) => ({
-          type:   it.type,
-          weight: Number(it.weight),
-        })),
-        pickupDate:  new Date(pickupDate).toISOString(),
-        imageFile:   imageFile || undefined,
-      });
+  const finalAddress = useDefault ? defaultAddress : address.trim();
 
-      setSubmitted(true);
-    } catch (err) {
-      setError(err?.message || 'Failed to schedule pickup. Please try again.');
-    }
-  };
+  if (!finalAddress) {
+    setError('Please add a pickup address in your profile or enter one above.');
+    return;
+  }
+
+  if (validItems.length === 0) {
+    setError('Please add at least one waste item.');
+    return;
+  }
+
+  try {
+    await createPickup({
+      // ── Mock shape (used when VITE_USE_MOCK=true) ──────────
+      userId:    user?.id,
+      userName:  user?.name || user?.fullName,
+      userPhone: user?.phone,
+      // Mock only supports a single waste type — use the first item
+      wasteType:       validItems[0]?.type,
+      weight:          Number(validItems[0]?.weight || 0),
+      scheduledFor:    new Date(pickupDate).toISOString(),
+      address:         finalAddress,
+      imageUrls:       imagePreview ? [imagePreview] : [],
+      estimatedPoints: totalPts,
+      notes:           '',
+
+      // ── Real API shape (used when VITE_USE_MOCK=false) ─────
+      // Backend expects capitalized waste types: Plastic, Glass, Metal
+      wasteItems: validItems.map((it) => ({
+        type:   it.type.charAt(0).toUpperCase() + it.type.slice(1),
+        weight: Number(it.weight),
+      })),
+      pickupDate: new Date(pickupDate).toISOString(),
+      imageFile:  imageFile || undefined,
+    });
+
+    setSubmitted(true);
+  } catch (err) {
+    setError(err?.message || 'Failed to schedule pickup. Please try again.');
+  }
+};
 
   // ── Success screen ──────────────────────────────────────────
   if (submitted) {

@@ -1,87 +1,202 @@
-import { useState } from 'react';
-import { CheckCircle2 } from 'lucide-react';
-import { useAuthStore } from '../../store/useAuthStore';
-import { userApi }      from '../../api/userApi';
-import Button           from '../../components/ui/Button';
-import { getInitials }  from '../../utils/generateBadgerColor';
+import { useEffect }             from 'react';
+import { useForm }               from 'react-hook-form';
+import { zodResolver }           from '@hookform/resolvers/zod';
+import { CheckCircle2, AlertCircle } from 'lucide-react';
+import { useAuthStore }          from '../../store/useAuthStore';
+import { userApi }               from '../../api/userApi';
+import Button                    from '../../components/ui/Button';
+import { getInitials }           from '../../utils/generateBadgeColor';
+import {
+  profileSchema,
+  changePasswordSchema,
+} from '../../validation/schemas';
 
-function Field({ label, children }) {
+const inputCls =
+  'w-full h-11 rounded-xl border px-3 text-sm bg-white outline-none transition ';
+
+function FormInput({ label, hint, error, registration, type = 'text', placeholder }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-ink-700 mb-1.5">
-        {label}
-      </label>
-      {children}
+      <div className="flex items-baseline justify-between mb-1.5">
+        <label className="text-sm font-medium text-ink-800">{label}</label>
+        {hint && <span className="text-xs text-ink-400">{hint}</span>}
+      </div>
+      <input
+        type={type}
+        placeholder={placeholder}
+        {...registration}
+        className={inputCls +
+          (error
+            ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100'
+            : 'border-ink-200 focus:border-eco-500 focus:ring-2 focus:ring-eco-100'
+          )
+        }
+      />
+      {error && (
+        <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+          <AlertCircle size={11} />
+          {error.message}
+        </p>
+      )}
     </div>
   );
 }
 
-const inputCls = `w-full h-11 rounded-xl border border-ink-200 px-3 text-sm
-  bg-white focus:border-eco-500 focus:ring-2 focus:ring-eco-100
-  outline-none transition`;
+// ── Profile section ───────────────────────────────────────────
+function ProfileForm({ user, setAuth, token }) {
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting, isSubmitSuccessful },
+  } = useForm({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      fullName: user?.fullName || user?.name || '',
+      phone:    user?.phone    || '',
+      address:  user?.address  || user?.defaultAddress || '',
+    },
+  });
 
+  // Re-populate when user changes
+  useEffect(() => {
+    reset({
+      fullName: user?.fullName || user?.name || '',
+      phone:    user?.phone    || '',
+      address:  user?.address  || user?.defaultAddress || '',
+    });
+  }, [user, reset]);
+
+  const onSubmit = async (data) => {
+    const updated = await userApi.updateProfile({
+      fullName:       data.fullName,
+      phone:          data.phone,
+      defaultAddress: data.address,
+    });
+    setAuth({
+      user:        { ...user, ...updated, name: updated.fullName },
+      accessToken: token,
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}
+      className="bg-white rounded-2xl border border-ink-100 shadow-sm
+        p-5 space-y-4">
+      <h2 className="font-semibold text-ink-800">Personal information</h2>
+
+      <FormInput
+        label="Full name"
+        registration={register('fullName')}
+        error={errors.fullName}
+        placeholder="Chidi Okeke"
+      />
+      <FormInput
+        label="Phone number"
+        type="tel"
+        registration={register('phone')}
+        error={errors.phone}
+        placeholder="+234..."
+      />
+      <div>
+        <label className="block text-sm font-medium text-ink-800 mb-1.5">
+          Default pickup address
+        </label>
+        <textarea
+          rows={2}
+          {...register('address')}
+          placeholder="Your full pickup address"
+          className={inputCls + 'h-auto py-2.5 ' +
+            (errors.address
+              ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100'
+              : 'border-ink-200 focus:border-eco-500 focus:ring-2 focus:ring-eco-100'
+            )
+          }
+        />
+        {errors.address && (
+          <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+            <AlertCircle size={11} />{errors.address.message}
+          </p>
+        )}
+      </div>
+
+      {isSubmitSuccessful && (
+        <p className="text-xs text-eco-700 bg-eco-50 border border-eco-200
+          rounded-lg px-3 py-2 flex items-center gap-1.5">
+          <CheckCircle2 size={12} /> Profile saved successfully
+        </p>
+      )}
+
+      <Button type="submit" loading={isSubmitting}>
+        Save changes
+      </Button>
+    </form>
+  );
+}
+
+// ── Password section ──────────────────────────────────────────
+function PasswordForm() {
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting, isSubmitSuccessful },
+  } = useForm({ resolver: zodResolver(changePasswordSchema) });
+
+  const onSubmit = async (data) => {
+    await userApi.changePassword(data);
+    reset();
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}
+      className="bg-white rounded-2xl border border-ink-100 shadow-sm
+        p-5 space-y-4">
+      <h2 className="font-semibold text-ink-800">Change password</h2>
+
+      <FormInput
+        label="Current password"
+        type="password"
+        registration={register('currentPassword')}
+        error={errors.currentPassword}
+        placeholder="••••••••"
+      />
+      <FormInput
+        label="New password"
+        type="password"
+        hint="Min. 6 characters"
+        registration={register('newPassword')}
+        error={errors.newPassword}
+        placeholder="••••••••"
+      />
+      <FormInput
+        label="Confirm new password"
+        type="password"
+        registration={register('confirmPassword')}
+        error={errors.confirmPassword}
+        placeholder="••••••••"
+      />
+
+      {isSubmitSuccessful && (
+        <p className="text-xs text-eco-700 bg-eco-50 border border-eco-200
+          rounded-lg px-3 py-2 flex items-center gap-1.5">
+          <CheckCircle2 size={12} /> Password changed successfully
+        </p>
+      )}
+
+      <Button type="submit" loading={isSubmitting}>
+        Update password
+      </Button>
+    </form>
+  );
+}
+
+// ── Main ──────────────────────────────────────────────────────
 export default function Profile() {
-  const user     = useAuthStore((s) => s.user);
-  const setAuth  = useAuthStore((s) => s.setAuth);
-  const token    = useAuthStore((s) => s.accessToken);
-
-  const [profile, setProfile] = useState({
-    fullName: user?.fullName || user?.name || '',
-    phone:    user?.phone    || '',
-    address:  user?.address  || user?.defaultAddress || '',
-  });
-  const [profileSaving, setProfileSaving] = useState(false);
-  const [profileOk,     setProfileOk]     = useState(false);
-  const [profileErr,    setProfileErr]    = useState('');
-
-  const [pwd, setPwd] = useState({
-    currentPassword: '',
-    newPassword:     '',
-    confirmPassword: '',
-  });
-  const [pwdSaving, setPwdSaving] = useState(false);
-  const [pwdOk,     setPwdOk]     = useState(false);
-  const [pwdErr,    setPwdErr]    = useState('');
-
-  const name = user?.name || user?.fullName || '';
-
-  const saveProfile = async () => {
-    setProfileSaving(true); setProfileErr(''); setProfileOk(false);
-    try {
-      const updated = await userApi.updateProfile({
-        fullName:       profile.fullName,
-        phone:          profile.phone,
-        defaultAddress: profile.address,
-      });
-      // Update the store with new user data
-      setAuth({ user: { ...user, ...updated, name: updated.fullName }, accessToken: token });
-      setProfileOk(true);
-      setTimeout(() => setProfileOk(false), 3000);
-    } catch (err) {
-      setProfileErr(err?.response?.data?.message || err?.message || 'Save failed');
-    } finally {
-      setProfileSaving(false);
-    }
-  };
-
-  const savePassword = async () => {
-    setPwdSaving(true); setPwdErr(''); setPwdOk(false);
-    if (pwd.newPassword !== pwd.confirmPassword) {
-      setPwdErr('New passwords do not match');
-      setPwdSaving(false);
-      return;
-    }
-    try {
-      await userApi.changePassword(pwd);
-      setPwd({ currentPassword: '', newPassword: '', confirmPassword: '' });
-      setPwdOk(true);
-      setTimeout(() => setPwdOk(false), 3000);
-    } catch (err) {
-      setPwdErr(err?.response?.data?.message || err?.message || 'Failed to change password');
-    } finally {
-      setPwdSaving(false);
-    }
-  };
+  const user       = useAuthStore((s) => s.user);
+  const setAuth    = useAuthStore((s) => s.setAuth);
+  const token      = useAuthStore((s) => s.accessToken);
+  const name       = user?.fullName || user?.name || '';
 
   return (
     <div className="max-w-xl mx-auto space-y-6">
@@ -92,7 +207,6 @@ export default function Profile() {
         </p>
       </div>
 
-      {/* Avatar */}
       <div className="flex items-center gap-4">
         <div className="w-16 h-16 rounded-2xl bg-eco-100 text-eco-700
           grid place-items-center text-xl font-bold">
@@ -107,128 +221,8 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* Profile form */}
-      <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5
-        space-y-4">
-        <h2 className="font-semibold text-ink-800">Personal information</h2>
-
-        <Field label="Full name">
-          <input
-            type="text"
-            value={profile.fullName}
-            onChange={(e) =>
-              setProfile((p) => ({ ...p, fullName: e.target.value }))
-            }
-            className={inputCls}
-          />
-        </Field>
-
-        <Field label="Phone number">
-          <input
-            type="tel"
-            value={profile.phone}
-            onChange={(e) =>
-              setProfile((p) => ({ ...p, phone: e.target.value }))
-            }
-            placeholder="+234..."
-            className={inputCls}
-          />
-        </Field>
-
-        <Field label="Default pickup address">
-          <textarea
-            rows={2}
-            value={profile.address}
-            onChange={(e) =>
-              setProfile((p) => ({ ...p, address: e.target.value }))
-            }
-            placeholder="Your full address"
-            className={`${inputCls} h-auto py-2.5`}
-          />
-        </Field>
-
-        {profileErr && (
-          <p className="text-xs text-red-600 bg-red-50 border border-red-200
-            rounded-lg px-3 py-2">
-            {profileErr}
-          </p>
-        )}
-
-        {profileOk && (
-          <p className="text-xs text-eco-700 bg-eco-50 border border-eco-200
-            rounded-lg px-3 py-2 flex items-center gap-1.5">
-            <CheckCircle2 size={12} /> Profile saved successfully
-          </p>
-        )}
-
-        <Button onClick={saveProfile} loading={profileSaving}>
-          Save changes
-        </Button>
-      </div>
-
-      {/* Change password */}
-      <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5
-        space-y-4">
-        <h2 className="font-semibold text-ink-800">Change password</h2>
-
-        <Field label="Current password">
-          <input
-            type="password"
-            value={pwd.currentPassword}
-            onChange={(e) =>
-              setPwd((p) => ({ ...p, currentPassword: e.target.value }))
-            }
-            autoComplete="current-password"
-            className={inputCls}
-          />
-        </Field>
-
-        <Field label="New password">
-          <input
-            type="password"
-            value={pwd.newPassword}
-            onChange={(e) =>
-              setPwd((p) => ({ ...p, newPassword: e.target.value }))
-            }
-            autoComplete="new-password"
-            className={inputCls}
-          />
-        </Field>
-
-        <Field label="Confirm new password">
-          <input
-            type="password"
-            value={pwd.confirmPassword}
-            onChange={(e) =>
-              setPwd((p) => ({ ...p, confirmPassword: e.target.value }))
-            }
-            autoComplete="new-password"
-            className={inputCls}
-          />
-        </Field>
-
-        {pwdErr && (
-          <p className="text-xs text-red-600 bg-red-50 border border-red-200
-            rounded-lg px-3 py-2">
-            {pwdErr}
-          </p>
-        )}
-
-        {pwdOk && (
-          <p className="text-xs text-eco-700 bg-eco-50 border border-eco-200
-            rounded-lg px-3 py-2 flex items-center gap-1.5">
-            <CheckCircle2 size={12} /> Password changed successfully
-          </p>
-        )}
-
-        <Button
-          onClick={savePassword}
-          loading={pwdSaving}
-          disabled={!pwd.currentPassword || !pwd.newPassword || !pwd.confirmPassword}
-        >
-          Update password
-        </Button>
-      </div>
+      <ProfileForm user={user} setAuth={setAuth} token={token} />
+      <PasswordForm />
     </div>
   );
 }

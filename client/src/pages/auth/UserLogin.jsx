@@ -1,139 +1,207 @@
-import { useState } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { Mail, Lock, Recycle } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
-import Input from '../../components/ui/Input';
-import Button from '../../components/ui/Button';
+import { useState }                    from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Recycle, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
+import { useAuthStore } from '../../store/useAuthStore';
 
 export default function UserLogin() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { loginUser, isAuthenticating, error, setError } = useAuth();
-  const from = location.state?.from?.pathname || '/dashboard';
+  const navigate         = useNavigate();
+  const location         = useLocation();
+  const loginUser        = useAuthStore((s) => s.loginUser);
+  const isAuthenticating = useAuthStore((s) => s.isAuthenticating);
 
-  const [form, setForm] = useState({ email: 'adaeze@example.com', password: 'password123' });
-  const [errors, setErrors] = useState({});
+  const [email,        setEmail]        = useState('');
+  const [password,     setPassword]     = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error,        setError]        = useState(null);
 
-  const validate = () => {
-    const e = {};
-    if (!/^\S+@\S+\.\S+$/.test(form.email)) e.email = 'Enter a valid email';
-    if (form.password.length < 6) e.password = 'Minimum 6 characters';
-    setErrors(e);
-    return !Object.keys(e).length;
-  };
+  const from        = location.state?.from?.pathname || '/dashboard';
+  const expiredHint = location.state?.reason === 'expired';
 
-  const submit = async (ev) => {
-    ev.preventDefault();
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    if (isAuthenticating) return;
     setError(null);
-    if (!validate()) return;
     try {
-      await loginUser(form.email, form.password);
+      await loginUser(email.trim(), password);
       navigate(from, { replace: true });
-    } catch { /* error shown via useAuth().error */ }
+    } catch (err) {
+      setError(err?.message || 'Invalid email or password.');
+    }
   };
+
+  const disabled = isAuthenticating || !email || !password;
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2">
-      {/* Brand panel */}
-      <div className="hidden lg:flex flex-col justify-between p-12 bg-eco-600 text-white relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10"
-          style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '24px 24px' }}
-        />
-        <div className="relative flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-white/20 grid place-items-center">
-            <Recycle size={20} strokeWidth={2.2} />
-          </div>
-          <span className="text-xl font-extrabold tracking-tight">ScrapIt</span>
-        </div>
-        <div className="relative max-w-sm">
-          <h1 className="text-4xl font-extrabold leading-tight tracking-tight">
-            Turn your waste into worth.
-          </h1>
-          <p className="mt-4 text-eco-100 leading-relaxed">
-            Schedule a doorstep collection for plastic, glass and metal. Earn points you can redeem for airtime and gift cards.
-          </p>
-          <div className="mt-8 grid grid-cols-3 gap-3">
-            {[['♻️', 'Plastic', '10 pts/kg'], ['🫙', 'Glass', '8 pts/kg'], ['⚙️', 'Metal', '20 pts/kg']].map(([icon, label, rate]) => (
-              <div key={label} className="bg-white/10 rounded-xl p-3 border border-white/15">
-                <div className="text-xl">{icon}</div>
-                <div className="font-semibold text-sm mt-1">{label}</div>
-                <div className="text-xs text-eco-200">{rate}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-        <p className="relative text-xs text-eco-200">© 2026 ScrapIt — keeping cities cleaner.</p>
-      </div>
-
-      {/* Form panel */}
-      <div className="flex items-center justify-center p-6 lg:p-12 bg-white">
+    <div className="min-h-screen bg-ink-50 flex flex-col">
+      <div className="flex-1 flex items-center justify-center px-4 py-10">
         <div className="w-full max-w-md">
-          <div className="lg:hidden mb-6 flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-eco-600 grid place-items-center text-white">
-              <Recycle size={18} strokeWidth={2.2} />
-            </div>
-            <span className="text-lg font-extrabold text-ink-800">ScrapIt</span>
-          </div>
-          <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-eco-700 bg-eco-50 border border-eco-100 px-2.5 py-1 rounded-full mb-5">
-            <span className="w-1.5 h-1.5 rounded-full bg-eco-500" />
-            User portal
-          </div>
-          <h2 className="text-3xl font-bold text-ink-800 tracking-tight">Sign in</h2>
-          <p className="text-ink-500 mt-1 text-sm">Welcome back. Let's make today greener.</p>
 
-          {error && (
-            <div className="mt-4 p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">
-              {error}
+          {/* Header */}
+          <header className="mb-8 text-center">
+            <div className="w-14 h-14 mx-auto rounded-2xl bg-eco-100
+              text-eco-700 grid place-items-center mb-4">
+              <Recycle size={28} />
             </div>
-          )}
+            <h1 className="text-2xl font-bold tracking-tight text-ink-800">
+              Welcome back
+            </h1>
+            <p className="text-sm text-ink-500 mt-1">
+              Sign in to schedule pickups and redeem your points.
+            </p>
+          </header>
 
-          <form onSubmit={submit} className="mt-7 space-y-4" noValidate>
-            <Input
-              label="Email" type="email" icon={Mail} required
-              placeholder="you@example.com"
-              value={form.email}
-              onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-              error={errors.email}
-            />
-            <Input
-              label="Password" type="password" icon={Lock} required
-              placeholder="••••••••"
-              value={form.password}
-              onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-              error={errors.password}
-            />
-            <div className="flex items-center justify-between text-xs">
-              <label className="flex items-center gap-2 text-ink-600 cursor-pointer">
-                <input type="checkbox" defaultChecked className="rounded accent-eco-600" />
-                Remember me
-              </label>
-              <a href="#" className="font-semibold text-eco-700 hover:text-eco-800">Forgot password?</a>
+          {/* Form */}
+          <form
+            onSubmit={onSubmit}
+            noValidate
+            className="bg-white rounded-2xl shadow-sm border border-ink-100
+              p-6 sm:p-7 space-y-5"
+          >
+            {/* Session expired banner */}
+            {expiredHint && (
+              <Banner tone="warn">
+                Your session expired. Please sign in again.
+              </Banner>
+            )}
+
+            {/* Error banner */}
+            {error && (
+              <Banner tone="error">
+                <AlertCircle size={14} className="mt-0.5 shrink-0" />
+                {error}
+              </Banner>
+            )}
+
+            {/* Email */}
+            <Field label="Email" htmlFor="login-email">
+              <input
+                id="login-email"
+                type="email"
+                autoComplete="email"
+                inputMode="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="w-full h-11 rounded-xl border border-ink-200 px-3
+                  text-sm bg-white focus:border-eco-500 focus:ring-2
+                  focus:ring-eco-100 outline-none transition"
+              />
+            </Field>
+
+            {/* Password */}
+            <Field
+              label="Password"
+              htmlFor="login-password"
+              suffix={
+                <Link
+                  to="/forgot-password"
+                  className="text-xs text-eco-700 hover:underline"
+                >
+                  Forgot?
+                </Link>
+              }
+            >
+              <div className="relative">
+                <input
+                  id="login-password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full h-11 rounded-xl border border-ink-200
+                    px-3 pr-10 text-sm bg-white focus:border-eco-500
+                    focus:ring-2 focus:ring-eco-100 outline-none transition"
+                />
+                <button
+                  type="button"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2
+                    p-1.5 rounded-lg text-ink-400 hover:bg-ink-100"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </Field>
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={disabled}
+              className="w-full inline-flex items-center justify-center
+                gap-2 h-11 rounded-xl bg-eco-600 hover:bg-eco-700
+                text-white font-semibold text-sm transition
+                disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isAuthenticating && (
+                <Loader2 size={16} className="animate-spin" />
+              )}
+              {isAuthenticating ? 'Signing in…' : 'Sign in'}
+            </button>
+
+            {/* Register link */}
+            <p className="text-center text-sm text-ink-600">
+              New to ScrapIt?{' '}
+              <Link
+                to="/register"
+                className="text-eco-700 font-semibold hover:underline"
+              >
+                Create an account
+              </Link>
+            </p>
+
+            {/* Other portals */}
+            <div className="text-center text-xs text-ink-400 space-x-3
+              pt-2 border-t border-ink-100">
+              <Link to="/admin/login" className="hover:text-ink-600">
+                Admin sign-in
+              </Link>
+              <span aria-hidden>·</span>
+              <Link to="/collector/login" className="hover:text-ink-600">
+                Collector sign-in
+              </Link>
             </div>
-            <Button type="submit" size="lg" loading={isAuthenticating} className="w-full">
-              Sign in
-            </Button>
           </form>
 
-          <p className="text-sm text-ink-500 mt-6 text-center">
-            New to ScrapIt?{' '}
-            <Link to="/register" className="font-semibold text-eco-700 hover:text-eco-800">
-              Create an account
-            </Link>
-          </p>
-
-          <div className="mt-8 pt-6 border-t border-ink-100">
-            <p className="text-[11px] uppercase tracking-wider text-ink-400 font-semibold mb-3">Other portals</p>
-            <div className="grid grid-cols-2 gap-2">
-              <Link to="/admin/login" className="text-xs font-semibold text-center h-9 rounded-lg border border-ink-200 text-ink-600 hover:bg-ink-50 grid place-items-center">
-                Admin portal
-              </Link>
-              <Link to="/collector/login" className="text-xs font-semibold text-center h-9 rounded-lg border border-ink-200 text-ink-600 hover:bg-ink-50 grid place-items-center">
-                Collector portal
-              </Link>
-            </div>
-          </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ── Sub-components ────────────────────────────────────────────
+
+function Field({ label, htmlFor, suffix, children }) {
+  return (
+    <div>
+      <div className="flex items-baseline justify-between mb-1.5">
+        <label
+          htmlFor={htmlFor}
+          className="text-sm font-medium text-ink-800"
+        >
+          {label}
+        </label>
+        {suffix}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function Banner({ tone = 'error', children }) {
+  const tones = {
+    error: 'bg-red-50  text-red-700  border-red-200',
+    warn:  'bg-amber-50 text-amber-700 border-amber-200',
+  };
+  return (
+    <div
+      className={`flex items-start gap-2 text-xs rounded-xl border
+        px-3 py-2 ${tones[tone]}`}
+    >
+      {children}
     </div>
   );
 }
