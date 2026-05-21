@@ -1,9 +1,9 @@
-import { create } from 'zustand';
+import { create }             from 'zustand';
 import {
   rewardCatalog,
   mockRedemptionsByUser,
   mockRedemptions,
-} from '../mock/mockRewards';
+}                             from '../mock/mockRewards';
 import { generateRewardCode } from '../utils/generateRewardCode';
 import { useAuthStore }       from './useAuthStore';
 import { shouldFallback }     from './_fallback';
@@ -17,8 +17,6 @@ async function callApi(method, url, body) {
   return data?.data;
 }
 
-// ── Helpers ───────────────────────────────────────────────────
-
 const nextRedemptionId = (list) => {
   const max = list.reduce((m, r) => {
     const n = Number(String(r.id || '').split('-')[1]);
@@ -27,31 +25,27 @@ const nextRedemptionId = (list) => {
   return `R-${max + 1}`;
 };
 
-// Works for both mock users (id) and real API users (_id)
 const getAuthUser = () => useAuthStore.getState().user;
 const getUserId   = () => {
   const u = getAuthUser();
   return u?.id || u?._id || null;
 };
 
-// ── Store ─────────────────────────────────────────────────────
 export const useRewardStore = create((set, get) => ({
-  catalog:       rewardCatalog,
-  history:       [],
-  isLoading:     false,
-  isRedeeming:   false,
-  error:         null,
+  catalog:        rewardCatalog,
+  history:        [],
+  isLoading:      false,
+  isRedeeming:    false,
+  error:          null,
   lastRedemption: null,
 
-  // ── Catalog ─────────────────────────────────────────────────
   fetchCatalog: async () => {
     set({ isLoading: true, error: null });
     try {
       let cat;
       try {
         cat = await callApi('get', '/rewards/catalog');
-      } catch (err) {
-        // Backend has no /rewards/catalog — catalog is always the local constant
+      } catch {
         cat = rewardCatalog;
       }
       set({ catalog: cat || rewardCatalog, isLoading: false });
@@ -62,23 +56,17 @@ export const useRewardStore = create((set, get) => ({
     }
   },
 
-  // ── History ──────────────────────────────────────────────────
   fetchHistory: async (userIdArg) => {
     set({ isLoading: true, error: null });
     try {
       let list;
       try {
-        // Fix 1: was /rewards/me — real backend uses /rewards/my
         const raw = await callApi('get', '/rewards/my');
-        // Backend may wrap in { rewards: [...] } or return array directly
         list = raw?.rewards || (Array.isArray(raw) ? raw : []);
       } catch (err) {
-        // Fix 2: use shouldFallback so real server errors still surface
         if (!shouldFallback(err)) throw err;
-
-        // Fix 3: resolve userId from arg OR from auth store (_id vs id)
         const uid = userIdArg || getUserId();
-        list = uid ? mockRedemptionsByUser(uid) : [];
+        list      = uid ? mockRedemptionsByUser(uid) : [];
       }
       set({ history: Array.isArray(list) ? list : [], isLoading: false });
       return list;
@@ -88,9 +76,9 @@ export const useRewardStore = create((set, get) => ({
     }
   },
 
-  // ── Validation ───────────────────────────────────────────────
   validateRedeem: ({ type, providerId, denomination }) => {
     const cat = get().catalog;
+
     if (!cat?.[type])
       return { ok: false, message: 'Unknown reward type' };
 
@@ -109,24 +97,23 @@ export const useRewardStore = create((set, get) => ({
 
     if (balance < cat[type].minPoints) {
       return {
-        ok: false,
-        message: `You need at least ${cat[type].minPoints.toLocaleString()} pts for ${
-          type === 'airtime' ? 'airtime' : 'gift card'
-        } redemption.`,
+        ok:      false,
+        message: `You need at least ${cat[type].minPoints.toLocaleString()} pts ` +
+                 `for ${type === 'airtime' ? 'airtime' : 'gift card'} redemption.`,
       };
     }
 
     if (balance < denom.cost) {
       return {
-        ok: false,
-        message: `Insufficient points — this costs ${denom.cost.toLocaleString()} pts but you have ${balance.toLocaleString()} pts.`,
+        ok:      false,
+        message: `Insufficient points — this costs ${denom.cost.toLocaleString()} pts ` +
+                 `but you have ${balance.toLocaleString()} pts.`,
       };
     }
 
     return { ok: true, denomination: denom, provider };
   },
 
-  // ── Redeem ───────────────────────────────────────────────────
   redeem: async ({ type, providerId, denomination, phone }) => {
     set({ isRedeeming: true, error: null, lastRedemption: null });
     try {
@@ -136,51 +123,47 @@ export const useRewardStore = create((set, get) => ({
       let record;
       try {
         const raw = await callApi('post', '/rewards/redeem', {
-          type,
-          provider:     providerId,
-          denomination: Number(denomination),
-          phone,
+          type:          type === 'airtime' ? 'Airtime' : 'Gift Card',
+          provider:      check.provider.label,
+          pointsToSpend: check.denomination.cost,
+          denomination:  type !== 'airtime' ? check.denomination.value : undefined,
         });
-        // Normalise real API response
         record = raw?.reward || raw;
       } catch (err) {
         if (!shouldFallback(err)) throw err;
 
-        // Mock fallback — generate a local record
         const user = getAuthUser();
         record = {
-          id:          nextRedemptionId([...mockRedemptions, ...get().history]),
-          userId:      getUserId(),
+          id:           nextRedemptionId([...mockRedemptions, ...get().history]),
+          userId:       getUserId(),
           type,
-          provider:    check.provider.label,
-          providerId:  check.provider.id,
-          value:       check.denomination.value,
-          nairaValue:  check.denomination.value,
-          pointsSpent: check.denomination.cost,
-          code:        generateRewardCode({ type, providerId }),
-          status:      'fulfilled',
-          phone:       type === 'airtime' ? phone : undefined,
-          createdAt:   new Date().toISOString(),
+          provider:     check.provider.label,
+          providerId:   check.provider.id,
+          value:        check.denomination.value,
+          nairaValue:   check.denomination.value,
+          pointsSpent:  check.denomination.cost,
+          code:         generateRewardCode({ type, providerId }),
+          status:       'fulfilled',
+          phone:        type === 'airtime' ? phone : undefined,
+          createdAt:    new Date().toISOString(),
         };
 
-        // Optimistically debit points in the auth store
         if (user) {
           useAuthStore.setState({
             user: {
               ...user,
-              points:      Math.max(0, (user.points || 0) - check.denomination.cost),
-              pointsSpent: (user.pointsSpent || 0) + check.denomination.cost,
-              totalPointsSpent:
-                (user.totalPointsSpent || 0) + check.denomination.cost,
+              points:           Math.max(0, (user.points || 0) - check.denomination.cost),
+              pointsSpent:      (user.pointsSpent      || 0) + check.denomination.cost,
+              totalPointsSpent: (user.totalPointsSpent || 0) + check.denomination.cost,
             },
           });
         }
       }
 
       set((s) => ({
-        history:       [record, ...s.history],
+        history:        [record, ...s.history],
         lastRedemption: record,
-        isRedeeming:   false,
+        isRedeeming:    false,
       }));
 
       return record;

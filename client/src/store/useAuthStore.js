@@ -1,12 +1,12 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { findMockUserByEmail } from '../mock/mockUsers';
+import { findMockUserByEmail }      from '../mock/mockUsers';
 import { findMockCollectorByEmail } from '../mock/mockCollectors';
-import { shouldFallback } from './_fallback';
+import { shouldFallback }           from './_fallback';
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 
-
+// ── JWT helpers ───────────────────────────────────────────────
 function decodeJwt(token) {
   if (!token || typeof token !== 'string') return null;
   try {
@@ -25,15 +25,26 @@ function expiryFromToken(token) {
 
 function mockToken(userId) {
   const payload = {
-    sub: userId,
-    iat: Math.floor(Date.now() / 1000),
-    exp: Math.floor(Date.now() / 1000) + 15 * 60,
+    sub:  userId,
+    iat:  Math.floor(Date.now() / 1000),
+    exp:  Math.floor(Date.now() / 1000) + 15 * 60,
     mock: true,
   };
   return `mock.${btoa(JSON.stringify(payload))}.signature`;
 }
 
+// ── Error message extractor ───────────────────────────────────
+// Backend returns { success, message, data } — NOT { error: { message } }
+function apiMessage(err, fallback = 'Something went wrong') {
+  return (
+    err?.response?.data?.message       ||   // ← correct backend path
+    err?.response?.data?.error?.message ||   // ← fallback for other formats
+    err?.message                        ||
+    fallback
+  );
+}
 
+// ── Shared login POST ─────────────────────────────────────────
 async function postLogin(path, body) {
   if (USE_MOCK) throw new Error('mock-forced');
   const { default: client } = await import('../api/axiosClient');
@@ -41,23 +52,26 @@ async function postLogin(path, body) {
   return data?.data;
 }
 
-
+// ── Store ─────────────────────────────────────────────────────
 export const useAuthStore = create(
   persist(
     (set, get) => ({
-      user: null,
-      accessToken: null,
-      tokenExpiresAt: null,
-      isHydrating: true,        
+      user:             null,
+      accessToken:      null,
+      tokenExpiresAt:   null,
+      isHydrating:      true,
       isAuthenticating: false,
-      error: null,
+      error:            null,
 
+      // ── Computed ─────────────────────────────────────────────
       isTokenExpired: () => {
         const exp = get().tokenExpiresAt;
         return exp != null && Date.now() >= exp;
       },
-      isAuthenticated: () => !!get().user && !!get().accessToken && !get().isTokenExpired(),
+      isAuthenticated: () =>
+        !!get().user && !!get().accessToken && !get().isTokenExpired(),
 
+      // ── Setters ───────────────────────────────────────────────
       setAuth: ({ user, accessToken }) =>
         set({
           user,
@@ -71,6 +85,7 @@ export const useAuthStore = create(
 
       setError: (error) => set({ error }),
 
+      // ── Internal login runner ─────────────────────────────────
       _login: async ({ endpoint, email, password, expectedRole, mockResolver }) => {
         set({ isAuthenticating: true, error: null });
         try {
@@ -79,34 +94,34 @@ export const useAuthStore = create(
             data = await postLogin(endpoint, { email, password });
           } catch (err) {
             if (!shouldFallback(err)) throw err;
-            // Fall back to mock resolver
             data = mockResolver({ email, password });
           }
-          if (!data?.user || !data?.accessToken) {
+
+          if (!data?.user || !data?.accessToken)
             throw new Error('Invalid login response');
-          }
-          if (expectedRole && data.user.role !== expectedRole) {
+
+          if (expectedRole && data.user.role !== expectedRole)
             throw new Error(`This account is not a ${expectedRole}.`);
-          }
+
           set({
-            user: data.user,
-            accessToken: data.accessToken,
-            tokenExpiresAt: expiryFromToken(data.accessToken),
+            user:             data.user,
+            accessToken:      data.accessToken,
+            tokenExpiresAt:   expiryFromToken(data.accessToken),
             isAuthenticating: false,
-            error: null,
+            error:            null,
           });
           return data.user;
         } catch (err) {
-          const message =
-            err?.response?.data?.error?.message || err?.message || 'Login failed';
+          const message = apiMessage(err, 'Login failed');
           set({ isAuthenticating: false, error: message });
           throw new Error(message);
         }
       },
 
+      // ── User login ────────────────────────────────────────────
       loginUser: async (email, password) =>
         get()._login({
-          endpoint: '/auth/login',
+          endpoint:     '/auth/login',
           email,
           password,
           expectedRole: 'user',
@@ -119,9 +134,10 @@ export const useAuthStore = create(
           },
         }),
 
+      // ── Admin login ───────────────────────────────────────────
       loginAdmin: async (email, password) =>
         get()._login({
-          endpoint: '/auth/admin/login',
+          endpoint:     '/auth/admin/login',
           email,
           password,
           expectedRole: 'admin',
@@ -134,9 +150,10 @@ export const useAuthStore = create(
           },
         }),
 
+      // ── Collector login ───────────────────────────────────────
       loginCollector: async (email, password) =>
         get()._login({
-          endpoint: '/auth/collector/login',
+          endpoint:     '/auth/collector/login',
           email,
           password,
           expectedRole: 'collector',
@@ -149,7 +166,7 @@ export const useAuthStore = create(
           },
         }),
 
-
+      // ── Register ──────────────────────────────────────────────
       registerUser: async ({ name, email, phone, password }) => {
         set({ isAuthenticating: true, error: null });
         try {
@@ -158,54 +175,58 @@ export const useAuthStore = create(
             if (USE_MOCK) throw new Error('mock-forced');
             const { default: client } = await import('../api/axiosClient');
             const res = await client.post('/auth/register', {
-            fullName:        name,
-            email,
-            phone,
-            password,
-            confirmPassword: password,
-            });            data = res?.data?.data;
+              fullName:        name,
+              email,
+              phone,
+              password,
+              confirmPassword: password,
+            });
+            data = res?.data?.data;
           } catch (err) {
             if (!shouldFallback(err)) throw err;
-            // Mock fallback registration
-            if (findMockUserByEmail(email)) {
+            if (findMockUserByEmail(email))
               throw new Error('An account with that email already exists.');
-            }
             const newUser = {
-              id: `u_${Math.random().toString(36).slice(2, 8)}`,
+              id:              `u_${Math.random().toString(36).slice(2, 8)}`,
               name,
-              email: String(email).toLowerCase(),
+              fullName:        name,
+              email:           String(email).toLowerCase(),
               phone,
-              role: 'user',
-              address: '',
-              points: 0,
-              pointsEarned: 0,
-              pointsSpent: 0,
+              role:            'user',
+              address:         '',
+              defaultAddress:  '',
+              points:          0,
+              pointsEarned:    0,
+              pointsSpent:     0,
+              totalPointsEarned: 0,
+              totalPointsSpent:  0,
               profileComplete: false,
-              avatar: name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase(),
-              isActive: true,
-              createdAt: new Date().toISOString(),
+              avatar:          name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase(),
+              isActive:        true,
+              createdAt:       new Date().toISOString(),
             };
             data = { user: newUser, accessToken: mockToken(newUser.id) };
           }
-          if (!data?.user || !data?.accessToken) {
+
+          if (!data?.user || !data?.accessToken)
             throw new Error('Invalid registration response');
-          }
+
           set({
-            user: data.user,
-            accessToken: data.accessToken,
-            tokenExpiresAt: expiryFromToken(data.accessToken),
+            user:             data.user,
+            accessToken:      data.accessToken,
+            tokenExpiresAt:   expiryFromToken(data.accessToken),
             isAuthenticating: false,
-            error: null,
+            error:            null,
           });
           return data.user;
         } catch (err) {
-          const message =
-            err?.response?.data?.error?.message || err?.message || 'Registration failed';
+          const message = apiMessage(err, 'Registration failed');
           set({ isAuthenticating: false, error: message });
           throw new Error(message);
         }
       },
 
+      // ── Logout ────────────────────────────────────────────────
       logout: async () => {
         try {
           if (!USE_MOCK) {
@@ -216,17 +237,29 @@ export const useAuthStore = create(
           set({ user: null, accessToken: null, tokenExpiresAt: null, error: null });
         }
       },
-    }),
-    {
-      name: 'scrapit-auth',
-      storage: createJSONStorage(() => sessionStorage),
 
-      // Persist user + tokenExpiresAt only. Access token stays in memory.
-      
+      // ── Refresh user from API ─────────────────────────────────
+      // Called after points change to keep balance in sync with server.
+      refreshUser: async () => {
+        try {
+          if (USE_MOCK) return get().user;
+          const { default: client } = await import('../api/axiosClient');
+          const { data } = await client.get('/auth/me');
+          const user = data?.data ?? data;
+          if (user) set({ user });
+          return user;
+        } catch {
+          return get().user;
+        }
+      },
+    }),
+
+    // ── Persistence ───────────────────────────────────────────
+    {
+      name:    'scrapit-auth',
+      storage: createJSONStorage(() => sessionStorage),
       partialize: (s) => ({ user: s.user, tokenExpiresAt: s.tokenExpiresAt }),
       onRehydrateStorage: () => (state) => {
-
-        // After rehydrate, clear the hydration flag.
         state && (state.isHydrating = false);
       },
     },

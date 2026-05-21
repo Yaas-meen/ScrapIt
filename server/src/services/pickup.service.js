@@ -6,7 +6,7 @@ import { createStatusNotification } from './notification.service.js';
 export const STATUS_TRANSITIONS = {
   Pending: ['Approved', 'Rejected'],
   Approved: ['In Progress', 'Rejected'],
-  'In Progress': ['Completed'],
+  'In Progress': ['Completed', 'Rejected'],
 };
 
 export const createPickupRequest = async ({
@@ -203,11 +203,9 @@ export const assignCollectorToPickup = async ({ pickupId, collectorId, adminId }
     throw err;
   }
 
-  if (pickup.status !== 'Approved') {
-    const err = new Error('Can only assign a collector to an Approved pickup');
-    err.statusCode = 400;
-    throw err;
-  }
+if (pickup.status !== 'Approved') {
+  throw new Error('Can only assign a collector to an Approved pickup');
+}
 
   pickup.assignedCollector = collectorId;
 

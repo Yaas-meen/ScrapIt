@@ -31,7 +31,6 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
 
     Collector.countDocuments(),
 
-    // Pickups submitted over the last 7 days — for the line chart
     Pickup.aggregate([
       {
         $match: {
@@ -134,7 +133,7 @@ export const getActivityLog = asyncHandler(async (req, res) => {
 
   const pickups = await Pickup.find({ 'statusLog.1': { $exists: true } })
     .populate('user', 'fullName')
-    .populate('statusLog.changedBy')
+    .lean('statusLog.changedBy')
     .sort({ updatedAt: -1 })
     .limit(Number(limit));
 

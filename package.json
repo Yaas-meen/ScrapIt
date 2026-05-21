@@ -15,6 +15,7 @@
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "dev:server": "npm --prefix server run dev",
     "dev:client": "npm --prefix client run dev",
+    "seed":  "npm run seed:data --prefix server",
     "install:all": "npm install && npm --prefix server install && npm --prefix client install",
     "build": "npm --prefix client run build",
     "lint": "eslint . --ext .js,.jsx --report-unused-disable-directives --max-warnings 0",

@@ -1,6 +1,8 @@
 const DEFAULT_LOCALE = 'en-NG';
-
-const toDate = (d) => (d instanceof Date ? d : new Date(d));
+const toDate = (d) => {
+  if (d == null) return new Date(NaN);
+  return d instanceof Date ? d : new Date(d);
+};
 
 export function formatDate(date, locale = DEFAULT_LOCALE) {
   const d = toDate(date);

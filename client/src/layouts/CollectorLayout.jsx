@@ -1,108 +1,107 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ClipboardCheck, History, UserCircle2, LogOut } from 'lucide-react';
+import { useState }         from 'react';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import {
+  LayoutDashboard, ClipboardCheck,
+  History, UserCircle2, LogOut, Recycle,
+} from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
-
-const AVAILABILITY = [
-  { value: 'available', label: 'Available', dot: 'bg-eco-500' },
-  { value: 'busy',      label: 'Busy',      dot: 'bg-orange-500' },
-  { value: 'offline',   label: 'Offline',   dot: 'bg-ink-400' },
-];
 
 const TABS = [
   { to: '/collector/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/collector/assigned',  label: 'Assigned',  icon: ClipboardCheck },
-  { to: '/collector/history',   label: 'History',   icon: History },
-  { to: '/collector/profile',   label: 'Profile',   icon: UserCircle2 },
+  { to: '/collector/assigned',  label: 'Assigned',  icon: ClipboardCheck  },
+  { to: '/collector/history',   label: 'History',   icon: History         },
+  { to: '/collector/profile',   label: 'Profile',   icon: UserCircle2     },
 ];
 
+const AVAILABILITY = ['Available', 'Busy', 'Offline'];
+
+const AVAIL_STYLES = {
+  Available: 'bg-eco-100 text-eco-700   border-eco-200',
+  Busy:      'bg-gold-100 text-gold-700  border-gold-200',
+  Offline:   'bg-ink-100  text-ink-500   border-ink-200',
+};
+
 export default function CollectorLayout() {
+  const user     = useAuthStore((s) => s.user);
+  const logout   = useAuthStore((s) => s.logout);
   const navigate = useNavigate();
-  const user = useAuthStore((s) => s.user);
-  const setAvailability = useAuthStore((s) => s.setAvailability);
-  const logout = useAuthStore((s) => s.logout);
+  const [avail, setAvail] = useState('Available');
+
+  const cycleAvail = () =>
+    setAvail((v) => AVAILABILITY[(AVAILABILITY.indexOf(v) + 1) % AVAILABILITY.length]);
 
   const handleLogout = async () => {
-    await logout?.();
+    await logout();
     navigate('/collector/login', { replace: true });
   };
 
-  const current = user?.availability || 'available';
+  const name = user?.fullName || user?.name || 'Collector';
 
   return (
-    <div className="min-h-screen bg-ink-50 text-ink-800 flex flex-col">
-      {/* Top bar */}
-      <header className="sticky top-0 z-30 bg-white border-b border-ink-100">
-        <div className="h-16 px-4 sm:px-6 max-w-3xl mx-auto w-full flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gold-50 text-gold-700 grid place-items-center font-semibold text-sm shrink-0">
-            {(user?.name || 'C').slice(0, 1).toUpperCase()}
+    <div className="flex flex-col h-screen bg-ink-50">
+
+      {/* Top header */}
+      <header className="h-14 bg-white border-b border-ink-100 flex
+        items-center justify-between px-4 shrink-0 z-10">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-eco-100 text-eco-700
+            grid place-items-center">
+            <Recycle size={14} />
           </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-sm font-semibold truncate">{user?.name || 'Collector'}</div>
-            <div className="text-xs text-ink-500 truncate">
-              {user?.zone ? `Zone · ${user.zone}` : 'ScrapIt Collector'}
-            </div>
-          </div>
-          <AvailabilityToggle value={current} onChange={setAvailability} />
+          <span className="font-bold text-sm text-ink-800">ScrapIt</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {/* Availability pill */}
+          <button
+            onClick={cycleAvail}
+            className={`text-xs font-semibold px-3 h-7 rounded-full
+              border transition ${AVAIL_STYLES[avail]}`}
+          >
+            {avail}
+          </button>
+
+          {/* Logout */}
           <button
             onClick={handleLogout}
-            aria-label="Log out"
-            className="p-2 rounded-lg hover:bg-ink-100 text-ink-500"
+            aria-label="Sign out"
+            className="p-2 rounded-xl hover:bg-ink-100 text-ink-500
+              hover:text-ink-700"
           >
             <LogOut size={16} />
           </button>
         </div>
       </header>
 
-      {/* Main */}
-      <main className="flex-1 min-w-0 pb-20">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-5">
-          <Outlet />
-        </div>
+      {/* Page content */}
+      <main className="flex-1 overflow-y-auto pb-20 px-4 py-4 sm:px-6">
+        <Outlet />
       </main>
 
       {/* Bottom tab bar */}
-      <nav
-        aria-label="Primary"
-        className="fixed bottom-0 inset-x-0 z-30 bg-white border-t border-ink-100"
-      >
-        <ul className="grid grid-cols-4 max-w-3xl mx-auto">
-          {TABS.map(({ to, label, icon: Icon }) => (
-            <li key={to}>
-              <NavLink
-                to={to}
-                className={({ isActive }) =>
-                  `flex flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-medium ${
-                    isActive ? 'text-gold-700' : 'text-ink-500'
-                  }`
-                }
-              >
-                <Icon size={20} />
+      <nav className="fixed bottom-0 inset-x-0 h-16 bg-white border-t
+        border-ink-100 grid grid-cols-4 z-20">
+        {TABS.map(({ to, label, icon: Icon }) => (
+          <NavLink
+            key={to}
+            to={to}
+            className={({ isActive }) =>
+              'flex flex-col items-center justify-center gap-0.5 text-[10px] ' +
+              'font-semibold transition min-h-[44px] ' +
+              (isActive
+                ? 'text-eco-600'
+                : 'text-ink-400 hover:text-ink-600')
+            }
+          >
+            {({ isActive }) => (
+              <>
+                <Icon size={20} strokeWidth={isActive ? 2.5 : 1.8} />
                 {label}
-              </NavLink>
-            </li>
-          ))}
-        </ul>
+              </>
+            )}
+          </NavLink>
+        ))}
       </nav>
     </div>
-  );
-}
-
-function AvailabilityToggle({ value, onChange }) {
-  const current = AVAILABILITY.find((o) => o.value === value) || AVAILABILITY[0];
-  const cycle = () => {
-    const idx = AVAILABILITY.findIndex((o) => o.value === current.value);
-    const next = AVAILABILITY[(idx + 1) % AVAILABILITY.length];
-    onChange?.(next.value);
-  };
-  return (
-    <button
-      type="button"
-      onClick={cycle}
-      title="Toggle availability"
-      className="inline-flex items-center gap-2 px-3 h-9 rounded-full bg-ink-50 border border-ink-200 text-xs font-semibold text-ink-700 hover:bg-white transition"
-    >
-      <span className={`w-2 h-2 rounded-full ${current.dot}`} />
-      {current.label}
-    </button>
   );
 }

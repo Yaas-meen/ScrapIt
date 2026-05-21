@@ -5,7 +5,7 @@ import { CheckCircle2, AlertCircle } from 'lucide-react';
 import { useAuthStore }          from '../../store/useAuthStore';
 import { userApi }               from '../../api/userApi';
 import Button                    from '../../components/ui/Button';
-import { getInitials }           from '../../utils/generateBadgeColor';
+import { getInitials }           from '../../utils/generateBadgerColor';
 import {
   profileSchema,
   changePasswordSchema,
