@@ -349,5 +349,4 @@ function _timeline(state, id, status, by) {
   const p = state.pickups.find((x) => x._id === id || x.id === id);
   return [...(p?.timeline || p?.statusLog || []), { status, by, at: new Date().toISOString() }];
 }
-
 export default usePickupStore;

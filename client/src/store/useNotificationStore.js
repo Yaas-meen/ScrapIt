@@ -8,7 +8,6 @@ import { shouldFallback } from './_fallback';
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 
-// ── Internal API helper ───────────────────────────────────────
 async function callApi(method, url, body, params) {
   if (USE_MOCK) throw new Error('mock-forced');
   const { default: client } = await import('../api/axiosClient');
@@ -21,13 +20,11 @@ async function callApi(method, url, body, params) {
   return data;
 }
 
-// ── Helper ────────────────────────────────────────────────────
 const getCurrentUserId = () => {
   const u = useAuthStore.getState().user;
   return u?.id || u?._id || null;
 };
 
-// ── Store ─────────────────────────────────────────────────────
 export const useNotificationStore = create((set, get) => ({
   items:     [],
   isLoading: false,
@@ -39,11 +36,9 @@ export const useNotificationStore = create((set, get) => ({
     total:       0,
   },
 
-  // Selectors
   unread: () => get().items.filter((n) => !n.readAt && !n.isRead),
   read:   () => get().items.filter((n) =>  n.readAt ||  n.isRead),
 
-  // ── Fetch ─────────────────────────────────────────────────
   fetch: async ({ unreadOnly = false, page = 1, limit = 20 } = {}) => {
     set({ isLoading: true, error: null });
     try {
@@ -51,14 +46,12 @@ export const useNotificationStore = create((set, get) => ({
       let meta;
 
       try {
-        // Fixed: was /notifications/me → real API is /notifications/my
         const res = await callApi('get', '/notifications/my', null, {
           unread: unreadOnly || undefined,
           page,
           limit,
         });
 
-        // Unwrap — backend returns { notifications, unreadCount, meta }
         const body = res?.data ?? res;
         items = body?.notifications || body?.data || [];
         meta  = body?.meta || body?.pagination || {};
@@ -66,7 +59,6 @@ export const useNotificationStore = create((set, get) => ({
       } catch (err) {
         if (!shouldFallback(err)) throw err;
 
-        // Mock fallback
         const uid = getCurrentUserId();
         items = uid ? mockNotificationsByUser(uid) : [];
         if (unreadOnly) items = items.filter((n) => !n.readAt && !n.isRead);
@@ -78,7 +70,6 @@ export const useNotificationStore = create((set, get) => ({
         };
       }
 
-      // Sort newest first
       items = [...items].sort(
         (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
       );
@@ -103,11 +94,9 @@ export const useNotificationStore = create((set, get) => ({
     }
   },
 
-  // ── Mark single as read ───────────────────────────────────
   markRead: async (id) => {
     const now = new Date().toISOString();
 
-    // Optimistic update
     set((s) => ({
       items: s.items.map((n) =>
         (n.id === id || n._id === id) && !n.readAt
@@ -124,7 +113,6 @@ export const useNotificationStore = create((set, get) => ({
       await callApi('patch', `/notifications/${id}/read`);
     } catch (err) {
       if (!shouldFallback(err)) {
-        // Rollback on real error
         set((s) => ({
           items: s.items.map((n) =>
             (n.id === id || n._id === id)
@@ -139,16 +127,13 @@ export const useNotificationStore = create((set, get) => ({
         }));
         throw err;
       }
-      // Mock/network error — optimistic update stays
     }
   },
 
-  // ── Mark all as read ──────────────────────────────────────
   markAllRead: async () => {
     const now      = new Date().toISOString();
     const previous = get().items;
 
-    // Optimistic update
     set((s) => ({
       items: s.items.map((n) =>
         n.readAt ? n : { ...n, readAt: now, isRead: true }
@@ -160,18 +145,15 @@ export const useNotificationStore = create((set, get) => ({
       await callApi('patch', '/notifications/read-all');
     } catch (err) {
       if (!shouldFallback(err)) {
-        // Rollback on real error
         set({
           items: previous,
           error: err?.message || 'Failed to mark all as read',
         });
         throw err;
       }
-      // Mock/network error — optimistic update stays
     }
   },
 
-  // ── Push a new notification (from websocket / polling) ────
   push: (notif) =>
     set((s) => ({
       items: [
@@ -184,7 +166,6 @@ export const useNotificationStore = create((set, get) => ({
       },
     })),
 
-  // ── Reset ─────────────────────────────────────────────────
   reset: () =>
     set({
       items:     [],

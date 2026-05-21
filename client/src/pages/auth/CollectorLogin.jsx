@@ -135,7 +135,6 @@ export default function CollectorLogin() {
     </div>
   );
 }
-
 const inputCls =
   'w-full h-11 rounded-xl border border-ink-200 px-3 text-sm bg-white ' +
   'focus:border-gold-500 focus:ring-2 focus:ring-gold-100 ' +

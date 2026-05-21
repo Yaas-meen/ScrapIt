@@ -31,7 +31,6 @@ export function usePickups({
     } finally {
       setLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scope, JSON.stringify(filters), page, limit]);
 
   useEffect(() => { load(); }, [load]);

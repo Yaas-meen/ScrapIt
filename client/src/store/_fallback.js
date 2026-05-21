@@ -9,5 +9,4 @@ export function shouldFallback(err) {
   if (DEV && SOFT_STATUSES.has(err.response?.status)) return true;
   return false;
 }
-
 export default shouldFallback;

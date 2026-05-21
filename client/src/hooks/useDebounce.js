@@ -8,5 +8,4 @@ export function useDebounce(value, delay = 300) {
   }, [value, delay]);
   return debounced;
 }
-
 export default useDebounce;

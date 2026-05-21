@@ -33,7 +33,6 @@ export default function UserRegister() {
     patch(name, type === 'checkbox' ? checked : value);
   };
 
-  // Client-side validation
   const validation = useMemo(() => {
     if (!form.name.trim() || form.name.trim().length < 2)
       return { ok: false, message: 'Please enter your full name.' };
@@ -257,12 +256,10 @@ export default function UserRegister() {
   );
 }
 
-// ── Shared styles ─────────────────────────────────────────────
 const inputCls =
   'w-full h-11 rounded-xl border border-ink-200 px-3 text-sm bg-white ' +
   'focus:border-eco-500 focus:ring-2 focus:ring-eco-100 outline-none transition';
 
-// ── Sub-components ────────────────────────────────────────────
 function Field({ label, htmlFor, hint, children }) {
   return (
     <div>

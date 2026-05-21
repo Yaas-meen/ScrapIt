@@ -39,5 +39,4 @@ export const mockUsers = [
 
 export const findMockUserByEmail = (email) =>
   mockUsers.find((u) => u.email.toLowerCase() === String(email).toLowerCase()) || null;
-
 export default mockUsers;

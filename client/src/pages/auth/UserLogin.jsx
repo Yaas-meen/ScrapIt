@@ -172,8 +172,6 @@ export default function UserLogin() {
   );
 }
 
-// ── Sub-components ────────────────────────────────────────────
-
 function Field({ label, htmlFor, suffix, children }) {
   return (
     <div>

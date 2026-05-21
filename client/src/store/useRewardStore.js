@@ -183,5 +183,4 @@ export const useRewardStore = create((set, get) => ({
       error:          null,
     }),
 }));
-
 export default useRewardStore;

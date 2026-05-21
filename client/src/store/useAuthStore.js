@@ -6,7 +6,6 @@ import { shouldFallback }           from './_fallback';
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 
-// ── JWT helpers ───────────────────────────────────────────────
 function decodeJwt(token) {
   if (!token || typeof token !== 'string') return null;
   try {
@@ -33,18 +32,15 @@ function mockToken(userId) {
   return `mock.${btoa(JSON.stringify(payload))}.signature`;
 }
 
-// ── Error message extractor ───────────────────────────────────
-// Backend returns { success, message, data } — NOT { error: { message } }
 function apiMessage(err, fallback = 'Something went wrong') {
   return (
-    err?.response?.data?.message       ||   // ← correct backend path
-    err?.response?.data?.error?.message ||   // ← fallback for other formats
+    err?.response?.data?.message        || 
+    err?.response?.data?.error?.message ||   
     err?.message                        ||
     fallback
   );
 }
 
-// ── Shared login POST ─────────────────────────────────────────
 async function postLogin(path, body) {
   if (USE_MOCK) throw new Error('mock-forced');
   const { default: client } = await import('../api/axiosClient');
@@ -52,7 +48,6 @@ async function postLogin(path, body) {
   return data?.data;
 }
 
-// ── Store ─────────────────────────────────────────────────────
 export const useAuthStore = create(
   persist(
     (set, get) => ({
@@ -63,7 +58,6 @@ export const useAuthStore = create(
       isAuthenticating: false,
       error:            null,
 
-      // ── Computed ─────────────────────────────────────────────
       isTokenExpired: () => {
         const exp = get().tokenExpiresAt;
         return exp != null && Date.now() >= exp;
@@ -71,7 +65,6 @@ export const useAuthStore = create(
       isAuthenticated: () =>
         !!get().user && !!get().accessToken && !get().isTokenExpired(),
 
-      // ── Setters ───────────────────────────────────────────────
       setAuth: ({ user, accessToken }) =>
         set({
           user,
@@ -85,7 +78,6 @@ export const useAuthStore = create(
 
       setError: (error) => set({ error }),
 
-      // ── Internal login runner ─────────────────────────────────
       _login: async ({ endpoint, email, password, expectedRole, mockResolver }) => {
         set({ isAuthenticating: true, error: null });
         try {
@@ -118,7 +110,6 @@ export const useAuthStore = create(
         }
       },
 
-      // ── User login ────────────────────────────────────────────
       loginUser: async (email, password) =>
         get()._login({
           endpoint:     '/auth/login',
@@ -134,7 +125,6 @@ export const useAuthStore = create(
           },
         }),
 
-      // ── Admin login ───────────────────────────────────────────
       loginAdmin: async (email, password) =>
         get()._login({
           endpoint:     '/auth/admin/login',
@@ -150,7 +140,6 @@ export const useAuthStore = create(
           },
         }),
 
-      // ── Collector login ───────────────────────────────────────
       loginCollector: async (email, password) =>
         get()._login({
           endpoint:     '/auth/collector/login',
@@ -166,7 +155,6 @@ export const useAuthStore = create(
           },
         }),
 
-      // ── Register ──────────────────────────────────────────────
       registerUser: async ({ name, email, phone, password }) => {
         set({ isAuthenticating: true, error: null });
         try {
@@ -226,7 +214,6 @@ export const useAuthStore = create(
         }
       },
 
-      // ── Logout ────────────────────────────────────────────────
       logout: async () => {
         try {
           if (!USE_MOCK) {
@@ -238,8 +225,6 @@ export const useAuthStore = create(
         }
       },
 
-      // ── Refresh user from API ─────────────────────────────────
-      // Called after points change to keep balance in sync with server.
       refreshUser: async () => {
         try {
           if (USE_MOCK) return get().user;
@@ -254,7 +239,6 @@ export const useAuthStore = create(
       },
     }),
 
-    // ── Persistence ───────────────────────────────────────────
     {
       name:    'scrapit-auth',
       storage: createJSONStorage(() => sessionStorage),

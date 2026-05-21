@@ -18,5 +18,4 @@ export function useModal(initial = false) {
 
   return { isOpen, data, open, close, toggle };
 }
-
 export default useModal;

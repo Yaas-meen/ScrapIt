@@ -31,9 +31,7 @@ import CollectorDashboard from '../pages/collector/Dashboard';
 import AssignedPickups    from '../pages/collector/AssignedPickups';
 import CollectorProfile   from '../pages/collector/Profile';
 
-//  Hydration loader 
-// Shows a spinner while the auth store rehydrates from sessionStorage.
-// Without this, users get flashed to the login page on every refresh.
+
 function HydrationLoader() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-ink-50">
@@ -42,11 +40,6 @@ function HydrationLoader() {
     </div>
   );
 }
-
-//  Guards 
-// Each guard reads from the store. If the store is still
-// rehydrating, show a spinner. If not authenticated or wrong
-// role, redirect to the correct login page.
 
 function UserGuard() {
   const user        = useAuthStore((s) => s.user);
@@ -77,10 +70,6 @@ function CollectorGuard() {
   if (user.role !== 'collector') return <Navigate to="/collector/login" replace />;
   return <Outlet />;
 }
-
-//  Public guard 
-// If an already-logged-in user tries to open /login,
-// redirect them straight to their portal.
 function PublicOnly({ children }) {
   const user        = useAuthStore((s) => s.user);
   const isHydrating = useAuthStore((s) => s.isHydrating);
@@ -96,11 +85,9 @@ function PublicOnly({ children }) {
   return children;
 }
 
-// Router 
 const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/login" replace /> },
 
-  //  Public auth pages 
   {
     path: '/login',
     element: <PublicOnly><UserLogin /></PublicOnly>,
@@ -118,7 +105,6 @@ const router = createBrowserRouter([
     element: <PublicOnly><CollectorLogin /></PublicOnly>,
   },
 
-  // User portal 
   {
     element: <UserGuard />,
     children: [
@@ -136,7 +122,6 @@ const router = createBrowserRouter([
     ],
   },
 
-  // Admin portal 
   {
     path: '/admin',
     element: <AdminGuard />,
@@ -156,7 +141,6 @@ const router = createBrowserRouter([
     ],
   },
 
-  // Collector portal 
   {
     path: '/collector',
     element: <CollectorGuard />,
@@ -173,7 +157,6 @@ const router = createBrowserRouter([
       },
     ],
   },
-//404
   {
     path: '*',
     element: (

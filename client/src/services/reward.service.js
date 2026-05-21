@@ -15,5 +15,4 @@ const rewardService = {
   revealCode: (id) =>
     client.get(`/rewards/${id}/reveal`).then(unwrap),
 };
-
 export default rewardService;

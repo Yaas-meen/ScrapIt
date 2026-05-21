@@ -46,5 +46,4 @@ export function formatPercent(value, { fromFraction = false, digits = 0 } = {}) 
   if (fromFraction) n = n * 100;
   return `${n.toFixed(digits)}%`;
 }
-
 export default formatCurrency;

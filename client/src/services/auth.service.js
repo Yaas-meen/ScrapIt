@@ -30,5 +30,4 @@ const authService = {
   me:             () =>
     client.get('/auth/me').then(unwrap),
 };
-
 export default authService;

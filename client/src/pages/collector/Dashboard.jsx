@@ -66,7 +66,6 @@ export default function CollectorDashboard() {
     ).length,
   };
 
-  // Active pickups for "today's section"
   const active = assignedPickups
     .filter((p) => ['Approved', 'In Progress'].includes(p.status))
     .slice(0, 4)

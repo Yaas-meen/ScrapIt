@@ -39,5 +39,4 @@ export function useNotifications({ autoFetch = true } = {}) {
     reset,
   };
 }
-
 export default useNotifications;

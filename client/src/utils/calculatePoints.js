@@ -19,8 +19,6 @@ export function rateLabel(wasteType) {
   const rate = POINT_RATES[String(wasteType).toLowerCase()];
   return rate ? `${rate} pts/kg` : '—';
 }
-
-// Used by components that work with arrays of items
 export function calculateTotalPoints(wasteItems = []) {
   return wasteItems.reduce((total, item) => {
     if (!item.type || !item.weight) return total;
@@ -33,5 +31,4 @@ export function calculateTotalWeight(wasteItems = []) {
     return total + (parseFloat(item.weight) || 0);
   }, 0);
 }
-
 export default calculatePoints;

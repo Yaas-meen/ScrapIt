@@ -31,5 +31,4 @@ export const mockCollectors = [
 export const findMockCollectorById      = (id)    => mockCollectors.find((c) => c.id === id) || null;
 export const findMockCollectorByEmail   = (email) =>
   mockCollectors.find((c) => c.email.toLowerCase() === String(email).toLowerCase()) || null;
-
 export default mockCollectors;

@@ -10,5 +10,4 @@ const pickupService = {
   assignCollector:   (id, cId) => pickupApi.assignCollector(id, cId),
   deletePickup:      (id)      => pickupApi.remove(id),
 };
-
 export default pickupService;

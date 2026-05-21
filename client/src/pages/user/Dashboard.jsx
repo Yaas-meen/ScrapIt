@@ -30,7 +30,6 @@ function useCountUp(target, duration = 1000) {
   return count;
 }
 
-// Skeleton for stat cards
 function StatCardSkeleton() {
   return (
     <div className="bg-white rounded-2xl border border-ink-100 p-4">
@@ -41,7 +40,6 @@ function StatCardSkeleton() {
   );
 }
 
-// Skeleton for table rows
 function TableRowSkeleton() {
   return (
     <tr className="border-b border-ink-100">

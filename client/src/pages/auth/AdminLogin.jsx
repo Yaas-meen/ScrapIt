@@ -135,7 +135,6 @@ export default function AdminLogin() {
     </div>
   );
 }
-
 const inputCls =
   'w-full h-11 rounded-xl border border-ink-200 px-3 text-sm bg-white ' +
   'focus:border-purple-500 focus:ring-2 focus:ring-purple-100 ' +

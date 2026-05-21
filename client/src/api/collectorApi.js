@@ -17,7 +17,6 @@ export const collectorApi = {
     return data?.data?.collector ?? data?.data ?? data;
   },
 
-  // PATCH /collectors/:id/status  ← matches your backend route
   update: async (id, patch) => {
     const { data } = await client.patch(`/collectors/${id}/status`, patch);
     return data?.data?.collector ?? data?.data ?? data;
@@ -33,3 +32,4 @@ export const collectorApi = {
     return data?.data?.collector ?? data?.data ?? data;
   },
 };
+export default collectorApi;

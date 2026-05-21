@@ -41,8 +41,6 @@ function FormInput({ label, hint, error, registration, type = 'text', placeholde
     </div>
   );
 }
-
-// ── Profile section ───────────────────────────────────────────
 function ProfileForm({ user, setAuth, token }) {
   const {
     register,
@@ -58,7 +56,6 @@ function ProfileForm({ user, setAuth, token }) {
     },
   });
 
-  // Re-populate when user changes
   useEffect(() => {
     reset({
       fullName: user?.fullName || user?.name || '',
@@ -134,7 +131,6 @@ function ProfileForm({ user, setAuth, token }) {
   );
 }
 
-// ── Password section ──────────────────────────────────────────
 function PasswordForm() {
   const {
     register,
@@ -191,7 +187,6 @@ function PasswordForm() {
   );
 }
 
-// ── Main ──────────────────────────────────────────────────────
 export default function Profile() {
   const user       = useAuthStore((s) => s.user);
   const setAuth    = useAuthStore((s) => s.setAuth);

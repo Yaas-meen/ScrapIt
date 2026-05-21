@@ -9,7 +9,6 @@ import EmptyState from '../../components/ui/EmptyState';
 import { formatDate }     from '../../utils/formatDate';
 import { formatNumber, formatCurrency } from '../../utils/formatCurrency';
 
-// ── Redemption modal ──────────────────────────────────────────
 function RedemptionModal({ open, onClose }) {
   const user        = useAuthStore((s) => s.user);
   const catalog     = useRewardStore((s) => s.catalog);
@@ -268,7 +267,6 @@ function RedemptionModal({ open, onClose }) {
   );
 }
 
-// ── Main page ─────────────────────────────────────────────────
 export default function Rewards() {
   const user        = useAuthStore((s) => s.user);
   const history     = useRewardStore((s) => s.history);

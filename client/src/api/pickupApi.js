@@ -24,5 +24,4 @@ export const pickupApi = {
     client.patch(`/pickups/${id}/assign`, { collectorId }).then(unwrap),
   listAssigned: (params = {}) => client.get('/pickups/assigned', { params }).then(unwrap),
 };
-
 export default pickupApi;

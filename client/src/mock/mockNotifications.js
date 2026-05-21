@@ -51,5 +51,4 @@ export const mockNotificationsByUser = (userId) =>
 
 export const unreadCount = (userId) =>
   mockNotifications.filter((n) => n.userId === userId && !n.readAt).length;
-
 export default mockNotifications;

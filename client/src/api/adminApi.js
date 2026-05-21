@@ -8,5 +8,4 @@ export const adminApi = {
   activity:    (limit=20) => client.get('/admin/activity', { params: { limit } }).then(unwrap),
   userSummary: (id)       => client.get(`/admin/users/${id}/summary`).then(unwrap),
 };
-
 export default adminApi;

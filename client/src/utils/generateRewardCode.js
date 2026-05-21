@@ -30,5 +30,4 @@ export function isValidRewardCode(code) {
   if (typeof code !== 'string') return false;
   return /^([A-Z]{2,3})(?:-[A-Z2-9]{4}){2,3}$/.test(code);
 }
-
 export default generateRewardCode;

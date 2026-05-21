@@ -54,5 +54,4 @@ export const mockRedemptions = [
 
 export const mockRedemptionsByUser = (userId) =>
   mockRedemptions.filter((r) => r.userId === userId);
-
 export default mockRedemptions;

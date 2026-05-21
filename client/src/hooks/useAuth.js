@@ -26,8 +26,6 @@ export function useAuth() {
   const isAdmin     = isAuthenticated && user?.role === 'admin';
   const isCollector = isAuthenticated && user?.role === 'collector';
 
-  // ── Wrapped login helpers with redirect ─────────────────────
-
   const signInUser = useCallback(
     async (email, password, redirectTo = '/dashboard') => {
       await loginUser(email, password);
@@ -76,7 +74,6 @@ export function useAuth() {
   const clearError = useCallback(() => setError(null), [setError]);
 
   return {
-    // State
     user,
     accessToken,
     isAuthenticated,
@@ -87,7 +84,6 @@ export function useAuth() {
     isAdmin,
     isCollector,
 
-    // Actions
     loginUser,
     loginAdmin,
     loginCollector,
@@ -95,7 +91,6 @@ export function useAuth() {
     logout,
     refreshUser,
 
-    // Wrapped with redirect
     signInUser,
     signInAdmin,
     signInCollector,
@@ -104,5 +99,4 @@ export function useAuth() {
     clearError,
   };
 }
-
 export default useAuth;

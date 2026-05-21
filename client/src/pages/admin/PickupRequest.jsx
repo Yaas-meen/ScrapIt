@@ -31,11 +31,10 @@ export default function PickupRequests() {
   const [statusFilter, setStatusFilter] = useState(null);
   const [search,       setSearch]       = useState('');
   const [selected,     setSelected]     = useState(null);
-  const [collectors,   setCollectors]   = useState([]);   // ← real collectors for picker
+  const [collectors,   setCollectors]   = useState([]);  
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  // Load real collectors once so the picker has them ready
   useEffect(() => {
     if (USE_MOCK) {
       setCollectors(
@@ -358,7 +357,6 @@ function PickupDetailModal({ pickup, collectors = [], onClose }) {
   );
 }
 
-// ── Collector picker — uses real collectors passed from parent ─
 function CollectorPicker({ collectors, value, onChange, currentCollectorId }) {
   if (!collectors.length) {
     return (

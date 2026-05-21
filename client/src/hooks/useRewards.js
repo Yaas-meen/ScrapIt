@@ -43,5 +43,4 @@ export function useRewards() {
     totalRedeemed: user?.totalPointsSpent  || user?.pointsSpent  || 0,
   };
 }
-
 export default useRewards;

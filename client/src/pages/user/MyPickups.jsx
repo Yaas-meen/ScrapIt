@@ -12,7 +12,6 @@ import { STATUS_TIMELINE }    from '../../constants/statusList';
 
 const TABS = ['All','Pending','Approved','In Progress','Completed','Rejected'];
 
-// Normalize mock + API data shapes into one object
 function norm(p) {
   return {
     id:          p._id || p.id,

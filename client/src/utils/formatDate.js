@@ -66,7 +66,6 @@ export function isPastDate(date) {
 export default formatDate;
 
 /**
- * Returns a time-appropriate greeting string.
  * @returns {'Good morning'|'Good afternoon'|'Good evening'}
  */
 export function getGreeting() {
@@ -77,9 +76,8 @@ export function getGreeting() {
 }
 
 /**
- * Returns greeting with the user's first name.
  * @param {string} fullName
- * @returns {string}  e.g. "Good morning, Chidi"
+ * @returns {string}
  */
 export function getGreetingWithName(fullName = '') {
   const firstName = fullName.split(' ')[0] || 'there';

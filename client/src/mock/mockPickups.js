@@ -94,5 +94,4 @@ export const mockPickups = [
 
 export const mockPickupsByUser      = (userId)      => mockPickups.filter((p) => p.userId      === userId);
 export const mockPickupsByCollector = (collectorId) => mockPickups.filter((p) => p.collectorId === collectorId);
-
 export default mockPickups;

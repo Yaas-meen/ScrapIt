@@ -37,7 +37,6 @@ export default function SchedulePickup() {
 
   const defaultAddress = user?.address || user?.defaultAddress || '';
 
-  // ── Waste items helpers ─────────────────────────────────────
   const addItem = () => setWasteItems((p) => [...p, blankItem()]);
 
   const removeItem = (i) =>
@@ -56,7 +55,6 @@ export default function SchedulePickup() {
     validItems.map((it) => ({ type: it.type, weight: it.weight }))
   );
 
-  // ── Dropzone ────────────────────────────────────────────────
   const onDrop = useCallback((accepted, rejected) => {
     setImageError('');
     if (rejected.length > 0) {
@@ -77,7 +75,6 @@ export default function SchedulePickup() {
     multiple: false,
   });
 
-  // ── Navigation guards ───────────────────────────────────────
   const canNext = () => {
     if (step === 0) return validItems.length > 0;
     if (step === 1) return !!pickupDate;
@@ -88,7 +85,6 @@ export default function SchedulePickup() {
   const next = () => { if (canNext()) setStep((s) => s + 1); };
   const back = () => setStep((s) => s - 1);
 
-  // ── Submit ──────────────────────────────────────────────────
   const handleSubmit = async () => {
   setError('');
 
@@ -106,11 +102,9 @@ export default function SchedulePickup() {
 
   try {
     await createPickup({
-      // ── Mock shape (used when VITE_USE_MOCK=true) ──────────
       userId:    user?.id,
       userName:  user?.name || user?.fullName,
       userPhone: user?.phone,
-      // Mock only supports a single waste type — use the first item
       wasteType:       validItems[0]?.type,
       weight:          Number(validItems[0]?.weight || 0),
       scheduledFor:    new Date(pickupDate).toISOString(),
@@ -118,9 +112,6 @@ export default function SchedulePickup() {
       imageUrls:       imagePreview ? [imagePreview] : [],
       estimatedPoints: totalPts,
       notes:           '',
-
-      // ── Real API shape (used when VITE_USE_MOCK=false) ─────
-      // Backend expects capitalized waste types: Plastic, Glass, Metal
       wasteItems: validItems.map((it) => ({
         type:   it.type.charAt(0).toUpperCase() + it.type.slice(1),
         weight: Number(it.weight),
@@ -135,7 +126,6 @@ export default function SchedulePickup() {
   }
 };
 
-  // ── Success screen ──────────────────────────────────────────
   if (submitted) {
     return (
       <div className="max-w-md mx-auto text-center py-16">
@@ -279,7 +269,7 @@ export default function SchedulePickup() {
           </div>
         )}
 
-        {/* ── Step 1: Pickup Info ─────────────────────────────── */}
+        {/*  Step 1: Pickup Info  */}
         {step === 1 && (
           <div className="space-y-5">
             <h2 className="font-semibold text-ink-800">
@@ -339,7 +329,7 @@ export default function SchedulePickup() {
           </div>
         )}
 
-        {/* ── Step 2: Upload Image ─────────────────────────────── */}
+        {/*  Step 2: Upload Image  */}
         {step === 2 && (
           <div className="space-y-4">
             <h2 className="font-semibold text-ink-800">
@@ -407,7 +397,7 @@ export default function SchedulePickup() {
           </div>
         )}
 
-        {/* ── Step 3: Review ──────────────────────────────────── */}
+        {/*  Step 3: Review  */}
         {step === 3 && (
           <div className="space-y-5">
             <h2 className="font-semibold text-ink-800">Review your request</h2>

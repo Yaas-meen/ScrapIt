@@ -15,5 +15,4 @@ const notificationService = {
   delete:    (id) =>
     client.delete(`/notifications/${id}`).then(unwrap),
 };
-
 export default notificationService;

@@ -11,5 +11,4 @@ export const authApi = {
   logout: () => client.post('/auth/logout'),
   me: () => client.get('/auth/me').then(unwrap),
 };
-
 export default authApi;

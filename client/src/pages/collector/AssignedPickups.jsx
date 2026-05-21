@@ -32,7 +32,6 @@ function norm(p) {
   };
 }
 
-// ── Completion modal ──────────────────────────────────────────
 function CompleteModal({ pickup, open, onClose }) {
   const completePickup = usePickupStore((s) => s.completePickup);
 
@@ -41,7 +40,6 @@ function CompleteModal({ pickup, open, onClose }) {
   const [loading, setLoading] = useState(false);
   const [done,    setDone]    = useState(false);
 
-  // Reset when a new pickup is passed
   useEffect(() => {
     if (open) {
       setWeight(String(pickup?.weight || ''));
@@ -70,7 +68,6 @@ function CompleteModal({ pickup, open, onClose }) {
 
   if (!pickup) return null;
 
-  // ── Success screen ─────────────────────────────────────────
   if (done) {
     return (
       <Modal
@@ -102,7 +99,6 @@ function CompleteModal({ pickup, open, onClose }) {
     );
   }
 
-  // ── Completion form ────────────────────────────────────────
   return (
     <Modal
       open={open}
@@ -198,7 +194,6 @@ function CompleteModal({ pickup, open, onClose }) {
   );
 }
 
-// ── Pickup card ───────────────────────────────────────────────
 function PickupCard({ pickup, onStart, onComplete }) {
   const p = norm(pickup);
 
@@ -283,7 +278,6 @@ function PickupCard({ pickup, onStart, onComplete }) {
   );
 }
 
-// ── Main page ─────────────────────────────────────────────────
 export default function AssignedPickups({ defaultFilter = 'All' }) {
   const user                 = useAuthStore((s) => s.user);
   const assignedPickups      = usePickupStore((s) => s.assignedPickups);
@@ -300,7 +294,6 @@ export default function AssignedPickups({ defaultFilter = 'All' }) {
     if (user?.id) fetchAssignedPickups(user.id);
   }, [user?.id]);
 
-  // Sync tab when defaultFilter prop changes (history vs assigned route)
   useEffect(() => { setTab(defaultFilter); }, [defaultFilter]);
 
   const filtered = assignedPickups.filter(
