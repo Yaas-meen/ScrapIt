@@ -11,12 +11,13 @@ import {
 
 // Helper function
 const sendTokenResponse = (res, statusCode, message, account, accessToken, refreshToken) => {
-  // Store refresh token in httpOnly cookie (not accessible by JS)
+  const isProd = process.env.NODE_ENV === 'production';
+
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+    secure:   isProd,           // HTTPS only in production
+    sameSite: isProd ? 'none' : 'lax', 
+    maxAge:   7 * 24 * 60 * 60 * 1000,
   });
 
   return successResponse(res, statusCode, message, {
@@ -158,10 +159,10 @@ export const logout = asyncHandler(async (req, res) => {
     }
   }
 
-  res.clearCookie('refreshToken', {
+   res.clearCookie('refreshToken', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    secure:   isProd,
+    sameSite: isProd ? 'none' : 'lax',
   });
 
   return successResponse(res, 200, 'Logged out successfully');
