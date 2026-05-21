@@ -65,5 +65,4 @@ export const mockActivityLog = [
   { id: 'a4', text: 'Admin Bola rejected PCK-2033', at: daysAgo(6) },
   { id: 'a5', text: 'Admin Tunde added new collector Fatima Bello', at: daysAgo(11) },
 ];
-
 export default mockAnalytics;

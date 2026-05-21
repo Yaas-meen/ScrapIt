@@ -1,169 +1,136 @@
 <!-- #  ScrapIt — Recycling Pickup Scheduling Platform
 
-ScrapIt is a full-stack MERN web application designed to encourage sustainable waste management by allowing users to schedule recycling pickups, upload recyclable waste images, earn reward points, and redeem coupons.
-
-The platform also includes a powerful admin dashboard for managing pickup requests, monitoring users, and tracking recycling activities.
+> Turn waste into worth. Schedule collections, earn points, redeem airtime and gift cards.
 
 ---
 
-#  Problem Statement
+## Team
 
-Improper waste disposal contributes significantly to environmental pollution. Many households and businesses lack easy access to organized recycling systems.
-
-ScrapIt provides a smart solution that:
-- connects users with recycling pickup services
-- incentivizes recycling through reward points
-- promotes environmental sustainability
-- digitizes waste management workflows
-
----
-
-#  Features
-
-##  User Features
-
-### Authentication
-- User registration
-- Secure login/logout
-- JWT-based authentication
-- Password hashing with bcryptjs
-
-### Recycling Pickup
-- Schedule recycling pickups
-- Select recyclable waste type
-- Enter waste quantity/weight
-- Choose pickup date
-- Upload recyclable waste images
-
-### Pickup Tracking
-Users can track pickup request status:
-- Pending
-- Approved
-- Completed
-- Rejected
-
-### Rewards System
-- Earn points based on recyclable waste
-- View total reward points
-- View point history
-- Redeem coupons using points
-
-### Profile Management
-- Update address
-- Update phone number
-- Manage personal information
+| Dev | Role |
+|-----|------|
+| Dev A | Backend core — models, services, controllers, tests |
+| Dev B | Auth/DevOps — deployment, CI, token refresh |
+| Dev C | User portal — dashboard, schedule, pickups, rewards |
+| Dev D | Admin/Collector portals — layouts, stores, contracts |
 
 ---
 
-##  Admin Features
+## Tech stack
+---
 
-### Admin Dashboard
-- View all pickup requests
-- Approve/reject requests
-- Update pickup statuses
-- Filter requests by status
-- Monitor user activities
+## Live URLs
 
-### Waste Management
-- View uploaded recyclable waste images
-- Track completed pickups
-- Manage recycling workflow
-
-### User Monitoring
-- View registered users
-- Access contact information
-- Track recycling participation
+| Environment | URL |
+|-------------|-----|
+| Client (Vercel) | https://scrapit.vercel.app |
+| Server (Railway)| https://scrapit-server-production.up.railway.app |
+| Health check    | https://scrapit-server-production.up.railway.app/health |
 
 ---
 
-#  Reward Point System
+## Local setup
 
-Points are automatically calculated based on the type of recyclable waste.
+### Prerequisites
+- Node.js 20+
+- MongoDB Atlas account (or local MongoDB)
+- Cloudinary account
 
-| Waste Type | Points Awarded |
-|------------|----------------|
-| Plastic | 10 points/kg |
-| Paper | 5 points/kg |
-| Metal | 15 points/kg |
-
-### Coupon Redemption
-Users can:
-- redeem coupons using earned points
-- receive unique coupon codes
-- track redeemed rewards
-
----
-
-#  Tech Stack
-
-## Frontend
-- React
-- React Router DOM
-- Axios
-- Bootstrap / CSS
-
-## Backend
-- Node.js
-- Express.js
-- MongoDB
-- Mongoose
-- JWT Authentication
-- bcryptjs
-- Zod Validation
-
-## Cloud Services
-- MongoDB Atlas
-- Cloudinary
-
----
-
-#  Project Structure
+### 1 — Clone and install
 
 ```bash
-ScrapIt/
-│
-├── backend/
-│   ├── src/
-│   │   ├── config/
-│   │   ├── controllers/
-│   │   ├── middleware/
-│   │   ├── models/
-│   │   ├── routes/
-│   │   ├── scripts/
-│   │   ├── utils/
-│   │   ├── validators/
-│   │   ├── app.js
-│   │   └── server.js
-│   │
-│   ├── package.json
-│   └── .env
-│
-├── frontend/
-│   ├── src/
-│   │   ├── api/
-│   │   ├── assets/
-│   │   ├── components/
-│   │   ├── context/
-│   │   ├── hooks/
-│   │   ├── pages/
-│   │   ├── styles/
-│   │   ├── utils/
-│   │   ├── App.jsx
-│   │   └── main.jsx
-│   │
-│   └── package.json
-│
-├── README.md
-└── .gitignore
+git clone https://github.com/your-org/scrapit.git
+cd scrapit
+
+# Server dependencies
+cd server && npm install
+
+# Client dependencies
+cd ../client && npm install
+```
+
+### 2 — Server environment variables
+
+Create `server/.env`:
+
+```env
+NODE_ENV=development
+PORT=5000
+
+MONGO_URI=mongodb+srv://<user>:<password>@cluster0.xxxxx.mongodb.net/scrapit
+
+JWT_SECRET=your_jwt_secret_min_32_chars
+JWT_REFRESH_SECRET=your_refresh_secret_min_32_chars
+JWT_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN=7d
+
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+CLIENT_URL=http://localhost:5173
+```
+
+### 3 — Client environment variables
+
+`client/.env` (already in repo):
+
+```env
+VITE_API_BASE_URL=/api/v1
+VITE_USE_MOCK=true
+VITE_APP_NAME=ScrapIt
+```
+
+Set `VITE_USE_MOCK=false` to use the real backend.
+
+### 4 — Start development servers
+
+```bash
+# Terminal 1 — Backend
+cd server && npm run dev
+
+# Terminal 2 — Frontend
+cd client && npm run dev
+```
+
+Open: http://localhost:5173
+
+---
+
+## Seed data
+
+```bash
+# Seed admin user (admin@scrapit.com / Admin@1234)
+cd server && npm run seed:admin
+
+# Seed full demo data (users, collectors, pickups, rewards, notifications)
+cd server && npm run seed:data
+```
+
+### Test credentials
+
+| Portal | Email | Password |
+|--------|-------|----------|
+| User | chidi@gmail.com | password123 |
+| Admin | admin@scrapit.com | Admin@1234 |
+| Collector | emeka@scrapit.com | collector123 |
+
+---
+
+## Running tests
+
+```bash
+# Backend integration tests
+cd server && npm test
+
+# Frontend unit + component tests
+cd client && npm test
+
+# Frontend with coverage
+cd client && npm run test:coverage
 ```
 
 ---
-# ⭐ Support
 
-If you found this project useful:
-- Star the repository
-- Fork the project
-- Share feedback
-- Contribute improvements
+## Project structure
 
 --- -->

@@ -1,106 +1,57 @@
+const daysAgo = (n) => new Date(Date.now() - n * 86_400_000).toISOString();
+
 export const rewardCatalog = {
   airtime: {
+    label: 'Airtime', icon: '📱',
+    description: 'Instant airtime on any Nigerian network',
     minPoints: 500,
     providers: [
-      { id: 'mtn',     label: 'MTN',     color: '#FFCC00' },
-      { id: 'airtel',  label: 'Airtel',  color: '#ED1C24' },
-      { id: 'glo',     label: 'Glo',     color: '#5BAF26' },
-      { id: '9mobile', label: '9mobile', color: '#006A4D' },
+      { id: 'mtn',     label: 'MTN',     color: '#FFCB00' },
+      { id: 'airtel',  label: 'Airtel',  color: '#EF0000' },
+      { id: 'glo',     label: 'Glo',     color: '#009900' },
+      { id: '9mobile', label: '9mobile', color: '#006633' },
     ],
     denominations: [
-      { value: 500,  cost: 500 },
-      { value: 1000, cost: 1000 },
-      { value: 2000, cost: 2000 },
+      { value: 100,  cost: 100,  label: '₦100'   },
+      { value: 200,  cost: 200,  label: '₦200'   },
+      { value: 500,  cost: 500,  label: '₦500'   },
+      { value: 1000, cost: 1000, label: '₦1,000' },
     ],
   },
   giftcard: {
-    minPoints: 2500,
+    label: 'Gift Card', icon: '🎁',
+    description: 'Redeem for popular digital gift cards',
+    minPoints: 1000,
     providers: [
-      { id: 'gplay',  label: 'Google Play' },
-      { id: 'apple',  label: 'Apple' },
-      { id: 'amazon', label: 'Amazon' },
+      { id: 'gplay',  label: 'Google Play', color: '#4285F4' },
+      { id: 'apple',  label: 'Apple',       color: '#555555' },
+      { id: 'amazon', label: 'Amazon',      color: '#FF9900' },
     ],
-
     denominations: [
-      { value: 1000, cost: 2500 },
-      { value: 2000, cost: 5000 },
-      { value: 5000, cost: 12000 },
+      { value: 1000, cost: 1000, label: '₦1,000' },
+      { value: 2000, cost: 2000, label: '₦2,000' },
+      { value: 5000, cost: 5000, label: '₦5,000' },
     ],
   },
-};
-
-const daysAgo = (n) => {
-  const d = new Date();
-  d.setDate(d.getDate() - n);
-  return d.toISOString();
 };
 
 export const mockRedemptions = [
   {
-    id: 'R-104',
-    userId: 'u_001',
-    type: 'airtime',
-    provider: 'MTN',
-    providerId: 'mtn',
-    value: 500,
-    pointsSpent: 500,
-    code: 'MTN-9F2K-7H1Q',
-    status: 'fulfilled',
-    phone: '+2348035550142',
-    createdAt: daysAgo(3),
+    id: 'R-101', userId: 'u-001', type: 'airtime',
+    provider: 'MTN', providerId: 'mtn',
+    value: 500, pointsSpent: 500,
+    code: 'MTN-A1B2-C3D4', status: 'fulfilled',
+    phone: '+2348012345678', createdAt: daysAgo(7),
   },
   {
-    id: 'R-097',
-    userId: 'u_001',
-    type: 'giftcard',
-    provider: 'Google Play',
-    providerId: 'gplay',
-    value: 1000,
-    pointsSpent: 2500,
-    code: 'GP-A7BD-3F9E-2K1L',
-    status: 'fulfilled',
-    createdAt: daysAgo(14),
-  },
-  {
-    id: 'R-088',
-    userId: 'u_001',
-    type: 'airtime',
-    provider: 'Airtel',
-    providerId: 'airtel',
-    value: 1000,
-    pointsSpent: 1000,
-    code: 'ATL-2X4M-9P0R',
-    status: 'fulfilled',
-    phone: '+2348035550142',
-    createdAt: daysAgo(28),
-  },
-  {
-    id: 'R-072',
-    userId: 'u_001',
-    type: 'giftcard',
-    provider: 'Amazon',
-    providerId: 'amazon',
-    value: 2000,
-    pointsSpent: 5000,
-    code: 'AMZ-X1Y2-Z3W4-Q5R6',
-    status: 'fulfilled',
-    createdAt: daysAgo(48),
-  },
-  {
-    id: 'R-063',
-    userId: 'u_003',
-    type: 'giftcard',
-    provider: 'Apple',
-    providerId: 'apple',
-    value: 5000,
-    pointsSpent: 12000,
-    code: 'APL-77BB-44CC-1199',
-    status: 'fulfilled',
-    createdAt: daysAgo(60),
+    id: 'R-102', userId: 'u-002', type: 'giftcard',
+    provider: 'Google Play', providerId: 'gplay',
+    value: 1000, pointsSpent: 1000,
+    code: 'GP-X9Y8-Z7W6-V5U4', status: 'fulfilled',
+    phone: undefined, createdAt: daysAgo(14),
   },
 ];
 
 export const mockRedemptionsByUser = (userId) =>
   mockRedemptions.filter((r) => r.userId === userId);
-
-export default rewardCatalog;
+export default mockRedemptions;

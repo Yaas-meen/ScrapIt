@@ -1,65 +1,48 @@
-const daysAgo = (n, h = 9) => {
-  const d = new Date();
-  d.setDate(d.getDate() - n);
-  d.setHours(h, 0, 0, 0);
-  return d.toISOString();
-};
+const hoursAgo = (n) => new Date(Date.now() - n * 3_600_000).toISOString();
+const daysAgo  = (n) => new Date(Date.now() - n * 86_400_000).toISOString();
 
 export const mockNotifications = [
   {
-    id: 'n1',
-    userId: 'u_001',
-    message: 'Your pickup PCK-2038 is now In Progress.',
-    kind: 'pickup',
-    readAt: null,
-    createdAt: daysAgo(2, 11),
-    meta: { pickupId: 'PCK-2038' },
+    id: 'n-001', userId: 'u-001',
+    type: 'Approved', title: 'Pickup request approved!',
+    message: 'Your pickup PCK-2003 has been approved. A collector will be assigned shortly.',
+    pickupId: 'PCK-2003', readAt: null, isRead: false,
+    createdAt: hoursAgo(2),
   },
   {
-    id: 'n2',
-    userId: 'u_001',
-    message: 'Pickup PCK-2041 approved. A collector will arrive tomorrow.',
-    kind: 'pickup',
-    readAt: null,
-    createdAt: daysAgo(0, 12),
-    meta: { pickupId: 'PCK-2041' },
+    id: 'n-002', userId: 'u-001',
+    type: 'Rejected', title: 'Pickup request rejected',
+    message: 'Your pickup PCK-2007 was rejected. Reason: Image was too blurry.',
+    pickupId: 'PCK-2007', readAt: null, isRead: false,
+    createdAt: daysAgo(4),
   },
   {
-    id: 'n3',
-    userId: 'u_001',
-    message: 'You earned 52 points from PCK-2035.',
-    kind: 'reward',
-    readAt: null,
-    createdAt: daysAgo(5, 11),
-    meta: { pickupId: 'PCK-2035', points: 52 },
+    id: 'n-003', userId: 'u-001',
+    type: 'Completed', title: 'Pickup completed!',
+    message: 'Your pickup PCK-2001 is complete. You earned 25 points. Keep recycling!',
+    pickupId: 'PCK-2001', readAt: daysAgo(9), isRead: true,
+    createdAt: daysAgo(10),
   },
   {
-    id: 'n4',
-    userId: 'u_001',
-    message: 'Pickup PCK-2031 was rejected. See details for reason.',
-    kind: 'pickup',
-    readAt: daysAgo(8),
-    createdAt: daysAgo(9, 14),
-    meta: { pickupId: 'PCK-2031' },
+    id: 'n-004', userId: 'u-002',
+    type: 'In Progress', title: 'Collector is on the way',
+    message: 'Your assigned collector has started pickup PCK-2004. Have your waste ready.',
+    pickupId: 'PCK-2004', readAt: null, isRead: false,
+    createdAt: hoursAgo(5),
   },
   {
-    id: 'n5',
-    userId: 'u_001',
-    message: 'Welcome to ScrapIt — schedule your first pickup to start earning.',
-    kind: 'system',
-    readAt: daysAgo(19),
-    createdAt: daysAgo(20, 9),
-    meta: {},
+    id: 'n-005', userId: 'u-002',
+    type: 'Completed', title: 'Pickup completed!',
+    message: 'Your pickup PCK-2002 is complete. You earned 60 points.',
+    pickupId: 'PCK-2002', readAt: daysAgo(7), isRead: true,
+    createdAt: daysAgo(8),
   },
-
   {
-    id: 'n6',
-    userId: 'u_003',
-    message: 'Pickup PCK-2042 received — awaiting admin review.',
-    kind: 'pickup',
-    readAt: null,
-    createdAt: daysAgo(0, 9),
-    meta: { pickupId: 'PCK-2042' },
+    id: 'n-006', userId: 'u-003',
+    type: 'General', title: 'Welcome to ScrapIt!',
+    message: 'Start recycling today and earn points you can redeem for airtime and gift cards.',
+    pickupId: null, readAt: null, isRead: false,
+    createdAt: daysAgo(20),
   },
 ];
 
@@ -68,5 +51,4 @@ export const mockNotificationsByUser = (userId) =>
 
 export const unreadCount = (userId) =>
   mockNotifications.filter((n) => n.userId === userId && !n.readAt).length;
-
 export default mockNotifications;
