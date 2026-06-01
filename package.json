@@ -22,7 +22,6 @@
     "lint:fix": "eslint . --ext .js,.jsx --fix",
     "format": "prettier --write \"**/*.{js,jsx,json,css,md}\"",
     "format:check": "prettier --check \"**/*.{js,jsx,json,css,md}\"",
-    "prepare": "husky"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.0.1",
