@@ -21,8 +21,7 @@
     "lint": "eslint . --ext .js,.jsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext .js,.jsx --fix",
     "format": "prettier --write \"**/*.{js,jsx,json,css,md}\"",
-    "format:check": "prettier --check \"**/*.{js,jsx,json,css,md}\"",
-    "prepare": "husky"
+    "format:check": "prettier --check \"**/*.{js,jsx,json,css,md}\""
   },
   "devDependencies": {
     "@commitlint/cli": "^21.0.1",
