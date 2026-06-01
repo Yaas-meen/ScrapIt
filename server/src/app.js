@@ -15,44 +15,37 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
 }));
 
-app.use(cors({
-  origin: [
-    'https://scrap-it-one.vercel.app/',  
-    'http://localhost:5173',
-    'http://localhost:3000',
-  ],
-  credentials: true,
-}));
+const ALLOWED_ORIGINS = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://scrap-it-one.vercel.app',
+  'https://scrap-p4nfc7aeb-yaas-meens-projects.vercel.app',
+];
 
 if (process.env.PRODUCTION_URL) {
   ALLOWED_ORIGINS.push(process.env.PRODUCTION_URL);
 }
 
 app.use(cors({
-  origin: [
-    'https://scrap-it-one.vercel.app/',   
-    'http://localhost:5173',                 
-  ],
-  credentials: true,   
+  origin: ALLOWED_ORIGINS,
+  credentials: true,
 }));
 
-
 const authLimiter = rateLimit({
-  windowMs:  15 * 60 * 1000, // 15 minutes
-  max:        20,             // 20 attempts per window
+  windowMs: 15 * 60 * 1000,
+  max:       20,
   message: {
     success: false,
     message: 'Too many login attempts. Please try again in 15 minutes.',
   },
   standardHeaders: true,
   legacyHeaders:   false,
-  skip: (req) => process.env.NODE_ENV === 'test', // skip in tests
+  skip: (req) => process.env.NODE_ENV === 'test',
 });
 
-// General limit for all other API routes
 const generalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max:       200,            // 200 requests per window
+  windowMs: 15 * 60 * 1000,
+  max:       200,
   message: {
     success: false,
     message: 'Too many requests. Please slow down.',
@@ -63,8 +56,7 @@ const generalLimiter = rateLimit({
 });
 
 app.use('/api/v1/auth', authLimiter);
-
-app.use('/api/v1', generalLimiter);
+app.use('/api/v1',      generalLimiter);
 
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
@@ -73,7 +65,6 @@ if (process.env.NODE_ENV === 'development') {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
-
 
 app.get('/health', (req, res) => {
   res.json({
@@ -85,7 +76,6 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/api/v1', routes);
-
 
 app.use((req, res) => {
   res.status(404).json({
