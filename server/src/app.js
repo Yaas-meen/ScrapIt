@@ -26,15 +26,11 @@ if (process.env.PRODUCTION_URL) {
 }
 
 app.use(cors({
-  origin: (origin, cb) => {
-    // Allow requests with no origin (Postman, curl, server-to-server)
-    if (!origin) return cb(null, true);
-    if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
-    cb(new Error(`CORS: origin ${origin} not allowed`));
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  origin: [
+    'https://scrap-it-one.vercel.app/',   
+    'http://localhost:5173',                 
+  ],
+  credentials: true,   
 }));
 
 

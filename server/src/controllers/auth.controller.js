@@ -13,12 +13,12 @@ import {
 const sendTokenResponse = (res, statusCode, message, account, accessToken, refreshToken) => {
   const isProd = process.env.NODE_ENV === 'production';
 
-  res.cookie('refreshToken', refreshToken, {
-    httpOnly: true,
-    secure:   isProd,           // HTTPS only in production
-    sameSite: isProd ? 'none' : 'lax', 
-    maxAge:   7 * 24 * 60 * 60 * 1000,
-  });
+ res.cookie('refreshToken', token, {
+  httpOnly: true,
+  secure:   true,          
+  sameSite: 'none',        
+  maxAge:   7 * 24 * 60 * 60 * 1000,
+});
 
   return successResponse(res, statusCode, message, {
     accessToken,
