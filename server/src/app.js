@@ -15,11 +15,14 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
 }));
 
-const ALLOWED_ORIGINS = [
-  process.env.CLIENT_URL || 'http://localhost:5173',
-  'http://localhost:5173',
-  'http://localhost:4173', // Vite preview
-];
+app.use(cors({
+  origin: [
+    'https://scrap-it-one.vercel.app/',  
+    'http://localhost:5173',
+    'http://localhost:3000',
+  ],
+  credentials: true,
+}));
 
 if (process.env.PRODUCTION_URL) {
   ALLOWED_ORIGINS.push(process.env.PRODUCTION_URL);
