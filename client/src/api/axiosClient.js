@@ -9,7 +9,6 @@ const client = axios.create({
   timeout: 20_000,
 });
 
-//  Request: attach access token
 client.interceptors.request.use((config) => {
   const token = useAuthStore.getState().accessToken;
   if (token && !config.headers?.Authorization) {
@@ -19,7 +18,6 @@ client.interceptors.request.use((config) => {
   return config;
 });
 
-// Response: refresh-once-then-retry 
 let refreshing = null;
 
 async function performRefresh() {

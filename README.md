@@ -1,4 +1,4 @@
-# ScrapIt — Recycling Pickup Scheduling Platform
+<!-- #  ScrapIt — Recycling Pickup Scheduling Platform
 
 > Turn waste into worth. Schedule collections, earn points, redeem airtime and gift cards.
 
@@ -133,40 +133,4 @@ cd client && npm run test:coverage
 
 ## Project structure
 
----
-
-## API summary
-
-Full documentation: [`API_CONTRACTS.md`](./API_CONTRACTS.md)
-
-Base URL: `/api/v1`
-
-| Group | Endpoints |
-|-------|-----------|
-| Auth | register, login (user/admin/collector), refresh, logout, /me |
-| Users | profile, update profile, change password, list (admin) |
-| Pickups | create, list mine, list all, update status, assign, delete |
-| Rewards | redeem, list mine, reveal code, list all |
-| Notifications | list mine, mark read, mark all read, delete |
-| Collectors | list, create, toggle status, profile |
-| Admin | dashboard stats, charts, activity log, user summary |
-
----
-
-## Deployment
-
-### Railway (server)
-
-1. Connect GitHub repo → set root directory to `server/`
-2. Set all environment variables from `server/.env` (use production values)
-3. MongoDB Atlas → Network Access → allow `0.0.0.0/0` for Railway IPs
-4. First deploy runs automatically on push to `main`
-
-### Vercel (client)
-
-1. Connect GitHub repo → set root directory to `client/`
-2. Set `VITE_API_BASE_URL` to your Railway URL + `/api/v1`
-3. Set `VITE_USE_MOCK=false`
-4. Deploy
-
-### Post-deploy checklist
+--- -->
