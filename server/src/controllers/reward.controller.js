@@ -50,6 +50,7 @@ export const redeemReward = asyncHandler(async (req, res) => {
     nairaValue: reward.nairaValue,
     denomination: reward.denomination,
     createdAt: reward.createdAt,
+    code: reward.code,
   });
 });
 
@@ -66,6 +67,7 @@ export const getMyRewards = asyncHandler(async (req, res) => {
 
   const [rewards, total] = await Promise.all([
     Reward.find(filter)
+      .select('type provider value nairaValue pointsSpent createdAt code')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(Number(limit)),

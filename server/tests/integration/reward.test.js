@@ -88,7 +88,7 @@ describe('POST /api/v1/rewards/redeem', () => {
     expect(res.body.message).toMatch(/Minimum/i);
   });
 
-  it('reward code is hidden in the redeem response', async () => {
+  it('reward code is shown at redemption', async () => {
     const res = await request(app)
       .post('/api/v1/rewards/redeem')
       .set('Authorization', `Bearer ${token}`)
@@ -98,8 +98,9 @@ describe('POST /api/v1/rewards/redeem', () => {
         pointsToSpend: 500,
       });
 
-    expect(res.status).toBe(201);
-    expect(res.body.data.code).toBeUndefined();
+  expect(res.body.data.code).toBeDefined();
+  expect(typeof res.body.data.code).toBe('string');
+  expect(res.body.data.code.length).toBeGreaterThan(0);
   });
 });
 

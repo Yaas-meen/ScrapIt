@@ -28,38 +28,50 @@ export const redeemRewardSchema = z
       )
       .optional(),
   })
-  .refine(
-    (data) => {
-      if (data.type === 'Airtime') {
-        return AIRTIME_PROVIDERS.includes(data.provider);
+
+
+  .superRefine((data, ctx) => {
+    if (data.type === 'Airtime') {
+      if (!AIRTIME_PROVIDERS.includes(data.provider)) {
+        ctx.addIssue({
+          path: ['provider'],
+          code: z.ZodIssueCode.custom,
+          message: `Provider must be one of: ${AIRTIME_PROVIDERS.join(', ')}`,
+        });
       }
-      return GIFT_CARD_PROVIDERS.includes(data.provider);
-    },
-    (data) => ({
-      message:
-        data.type === 'Airtime'
-          ? `Provider must be one of: ${AIRTIME_PROVIDERS.join(', ')}`
-          : `Provider must be one of: ${GIFT_CARD_PROVIDERS.join(', ')}`,
-      path: ['provider'],
-    })
-  )
-  .refine(
-    (data) => {
-      if (data.type === 'Airtime') return data.pointsToSpend >= 500;
-      return data.pointsToSpend >= 1000;
-    },
-    (data) => ({
-      message:
-        data.type === 'Airtime'
-          ? 'Minimum redemption for Airtime is 500 points'
-          : 'Minimum redemption for Gift Card is 1000 points',
-      path: ['pointsToSpend'],
-    })
-  )
-  .refine(
-    (data) => data.type !== 'Gift Card' || !!data.denomination,
-    {
-      message: 'Denomination is required for Gift Card redemptions',
-      path: ['denomination'],
+    } else {
+      if (!GIFT_CARD_PROVIDERS.includes(data.provider)) {
+        ctx.addIssue({
+          path: ['provider'],
+          code: z.ZodIssueCode.custom,
+          message: `Provider must be one of: ${GIFT_CARD_PROVIDERS.join(', ')}`,
+        });
+      }
     }
-  );
+
+    if (data.type === 'Airtime' && data.pointsToSpend < 500) {
+      ctx.addIssue({
+        path: ['pointsToSpend'],
+        code: z.ZodIssueCode.custom,
+        message: 'Minimum redemption for Airtime is 500 points',
+      });
+    }
+
+    if (data.type === 'Gift Card' && data.pointsToSpend < 1000) {
+      ctx.addIssue({
+        path: ['pointsToSpend'],
+        code: z.ZodIssueCode.custom,
+        message: 'Minimum redemption for Gift Card is 1000 points',
+      });
+    }
+
+    if (data.type === 'Gift Card') {
+      if (!data.denomination) {
+        ctx.addIssue({
+          path: ['denomination'],
+          code: z.ZodIssueCode.custom,
+          message: 'Denomination is required for Gift Card redemptions',
+        });
+      }
+    }
+  });

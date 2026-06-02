@@ -12,10 +12,10 @@ export const rewardCatalog = {
       { id: '9mobile', label: '9mobile', color: '#006633' },
     ],
     denominations: [
-      { value: 100,  cost: 100,  label: '₦100'   },
-      { value: 200,  cost: 200,  label: '₦200'   },
       { value: 500,  cost: 500,  label: '₦500'   },
-      { value: 1000, cost: 1000, label: '₦1,000' },
+      { value: 1000,  cost: 1000,  label: '₦1,000'   },
+      { value: 2000,  cost: 2000,  label: '₦2,000'   },
+      { value: 3000, cost: 3000, label: '₦3,000' },
     ],
   },
   giftcard: {
