@@ -1,7 +1,7 @@
 export const GIFT_CARD_PROVIDERS = [
-  { id: 'gplay',  label: 'Google Play', icon: '🎮' },
-  { id: 'apple',  label: 'Apple',       icon: '🍎' },
-  { id: 'amazon', label: 'Amazon',      icon: '📦' },
+  { id: 'gplay',  label: 'Google Play'},
+  { id: 'apple',  label: 'Apple'},
+  { id: 'amazon', label: 'Amazon'},
 ];
 
 export const GIFT_CARD_DENOMINATIONS = [

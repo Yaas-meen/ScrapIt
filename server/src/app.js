@@ -11,6 +11,11 @@ const app = express();
 
 app.set('trust proxy', 1);
 
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+}));
+
+// Build allowed origins list — add PRODUCTION_URL from env if set
 const ALLOWED_ORIGINS = [
   'http://localhost:5173',
   'http://localhost:3000',
@@ -27,28 +32,28 @@ app.use(cors({
   credentials: true,
 }));
 
-app.use(helmet({
-  crossOriginResourcePolicy:  { policy: 'cross-origin' },
-  crossOriginEmbedderPolicy:  false,
-  crossOriginOpenerPolicy:    false,
-}));
-
 const authLimiter = rateLimit({
-  windowMs:       15 * 60 * 1000,
-  max:            20,
-  message:        { success: false, message: 'Too many login attempts. Please try again in 15 minutes.' },
+  windowMs: 15 * 60 * 1000,
+  max:       20,
+  message: {
+    success: false,
+    message: 'Too many login attempts. Please try again in 15 minutes.',
+  },
   standardHeaders: true,
-  legacyHeaders:  false,
-  skip:           (req) => process.env.NODE_ENV === 'test',
+  legacyHeaders:   false,
+  skip: (req) => process.env.NODE_ENV === 'test',
 });
 
 const generalLimiter = rateLimit({
-  windowMs:       15 * 60 * 1000,
-  max:            200,
-  message:        { success: false, message: 'Too many requests. Please slow down.' },
+  windowMs: 15 * 60 * 1000,
+  max:       200,
+  message: {
+    success: false,
+    message: 'Too many requests. Please slow down.',
+  },
   standardHeaders: true,
-  legacyHeaders:  false,
-  skip:           (req) => process.env.NODE_ENV === 'test',
+  legacyHeaders:   false,
+  skip: (req) => process.env.NODE_ENV === 'test',
 });
 
 app.use('/api/v1/auth', authLimiter);

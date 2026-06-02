@@ -78,7 +78,7 @@ export default function CollectorDashboard() {
       {/* Greeting */}
       <div>
         <h1 className="text-2xl font-bold text-ink-800">
-          {getGreeting()}, {name.split(' ')[0]} 👋
+          {getGreeting()}, {name.split(' ')[0]} 
         </h1>
         <p className="text-sm text-ink-500 mt-1">
           Here's your pickup overview for today.
