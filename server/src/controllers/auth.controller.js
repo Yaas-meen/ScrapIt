@@ -9,16 +9,15 @@ import {
   sanitiseAccount,
 } from '../services/auth.service.js';
 
-// Helper function
 const sendTokenResponse = (res, statusCode, message, account, accessToken, refreshToken) => {
   const isProd = process.env.NODE_ENV === 'production';
 
- res.cookie('refreshToken', token, {
-  httpOnly: true,
-  secure:   true,          
-  sameSite: 'none',        
-  maxAge:   7 * 24 * 60 * 60 * 1000,
-});
+  res.cookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    secure:   true,
+    sameSite: 'none',
+    maxAge:   7 * 24 * 60 * 60 * 1000,
+  });
 
   return successResponse(res, statusCode, message, {
     accessToken,
@@ -102,7 +101,6 @@ export const loginCollector = asyncHandler(async (req, res) => {
 });
 
 export const refreshToken = asyncHandler(async (req, res) => {
-
   const token = req.cookies?.refreshToken || req.body?.refreshToken;
 
   if (!token) {
@@ -116,7 +114,6 @@ export const refreshToken = asyncHandler(async (req, res) => {
     return errorResponse(res, 401, 'Invalid or expired refresh token');
   }
 
-  // Find the account and confirm the stored refresh token matches
   let account;
 
   if (decoded.role === 'collector') {
@@ -129,7 +126,6 @@ export const refreshToken = asyncHandler(async (req, res) => {
     return errorResponse(res, 401, 'Refresh token is invalid or has been revoked');
   }
 
-  // new pair of tokens
   const { accessToken, refreshToken: newRefreshToken } = await issueTokens(account);
 
   return sendTokenResponse(
@@ -143,11 +139,9 @@ export const refreshToken = asyncHandler(async (req, res) => {
 });
 
 export const logout = asyncHandler(async (req, res) => {
-
   const token = req.cookies?.refreshToken || req.body?.refreshToken;
 
   if (token) {
-    // Invalidate the stored refresh token so it can't be reused
     const decoded = jwt.decode(token);
 
     if (decoded?.id) {
@@ -159,7 +153,8 @@ export const logout = asyncHandler(async (req, res) => {
     }
   }
 
-   res.clearCookie('refreshToken', {
+  const isProd = process.env.NODE_ENV === 'production';
+  res.clearCookie('refreshToken', {
     httpOnly: true,
     secure:   isProd,
     sameSite: isProd ? 'none' : 'lax',
@@ -168,7 +163,6 @@ export const logout = asyncHandler(async (req, res) => {
   return successResponse(res, 200, 'Logged out successfully');
 });
 
-//get all current logged in info
 export const getMe = asyncHandler(async (req, res) => {
   return successResponse(res, 200, 'Account retrieved', sanitiseAccount(req.user));
 });
