@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Gift, Copy, Check, Eye, Smartphone, CreditCard } from 'lucide-react';
+import { Gift, Copy, Check, Eye } from 'lucide-react';
 import { useAuthStore }   from '../../store/useAuthStore';
 import { useRewardStore } from '../../store/useRewardStore';
 import Button    from '../../components/ui/Button';
@@ -9,17 +9,12 @@ import EmptyState from '../../components/ui/EmptyState';
 import { formatDate }     from '../../utils/formatDate';
 import { formatNumber, formatCurrency } from '../../utils/formatCurrency';
 
-const TYPE_ICON = {
-  airtime:  Smartphone,
-  giftcard: CreditCard,
-};
-
 function RedemptionModal({ open, onClose }) {
   const user        = useAuthStore((s) => s.user);
   const catalog     = useRewardStore((s) => s.catalog);
   const redeem      = useRewardStore((s) => s.redeem);
   const isRedeeming = useRewardStore((s) => s.isRedeeming);
-  const lastRedemption      = useRewardStore((s) => s.lastRedemption);
+  const lastRedemption   = useRewardStore((s) => s.lastRedemption);
   const clearLastRedemption = useRewardStore((s) => s.clearLastRedemption);
 
   const [step,       setStep]       = useState(0);
@@ -74,7 +69,8 @@ function RedemptionModal({ open, onClose }) {
       title={step < 3 ? 'Redeem reward' : 'Redemption successful!'}
       footer={
         step < 2 ? (
-          <Button onClick={() => setStep((s) => s + 1)} disabled={!canProceed()}>
+          <Button onClick={() => setStep((s) => s + 1)}
+            disabled={!canProceed()}>
             Continue
           </Button>
         ) : step === 2 ? (
@@ -94,12 +90,12 @@ function RedemptionModal({ open, onClose }) {
       {step === 0 && (
         <div className="space-y-3">
           <p className="text-sm text-ink-500 mb-4">
-            Your balance:{' '}
-            <strong className="text-ink-800">{formatNumber(balance)} pts</strong>
+            Your balance: <strong className="text-ink-800">
+              {formatNumber(balance)} pts
+            </strong>
           </p>
           {Object.entries(catalog || {}).map(([key, cat]) => {
             const locked = balance < cat.minPoints;
-            const Icon   = TYPE_ICON[key] || Gift;
             return (
               <button
                 key={key}
@@ -113,10 +109,7 @@ function RedemptionModal({ open, onClose }) {
                       : 'border-ink-200 hover:border-eco-300'}`}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-eco-100 text-eco-700
-                    grid place-items-center shrink-0">
-                    <Icon size={18} />
-                  </div>
+                  <span className="text-2xl">{cat.icon}</span>
                   <div>
                     <p className="font-semibold text-ink-800">{cat.label}</p>
                     <p className="text-xs text-ink-500">
@@ -207,8 +200,7 @@ function RedemptionModal({ open, onClose }) {
       {/* Step 2 — Confirm */}
       {step === 2 && (
         <div className="space-y-4">
-          <div className="rounded-xl bg-ink-50 border border-ink-200 p-4
-            space-y-3 text-sm">
+          <div className="rounded-xl bg-ink-50 border border-ink-200 p-4 space-y-3 text-sm">
             <div className="flex justify-between">
               <span className="text-ink-500">Type</span>
               <span className="font-medium capitalize text-ink-800">{type}</span>
@@ -236,9 +228,7 @@ function RedemptionModal({ open, onClose }) {
           </div>
           {error && (
             <p className="text-xs text-red-600 bg-red-50 border border-red-200
-              rounded-lg px-3 py-2">
-              {error}
-            </p>
+              rounded-lg px-3 py-2">{error}</p>
           )}
         </div>
       )}
@@ -255,8 +245,8 @@ function RedemptionModal({ open, onClose }) {
           </p>
           <div className="flex items-center gap-2 bg-ink-50 rounded-xl
             border border-ink-200 p-3">
-            <code className="flex-1 font-mono text-sm text-ink-800
-              tracking-widest text-center">
+            <code className="flex-1 font-mono text-sm text-ink-800 tracking-widest
+              text-center">
               {lastRedemption.code}
             </code>
             <button
@@ -265,9 +255,7 @@ function RedemptionModal({ open, onClose }) {
                 transition shrink-0"
               aria-label="Copy code"
             >
-              {copied
-                ? <Check size={16} className="text-eco-600" />
-                : <Copy size={16} />}
+              {copied ? <Check size={16} className="text-eco-600" /> : <Copy size={16} />}
             </button>
           </div>
           <p className="text-xs text-ink-400">
@@ -280,21 +268,21 @@ function RedemptionModal({ open, onClose }) {
 }
 
 export default function Rewards() {
-  const user         = useAuthStore((s) => s.user);
-  const history      = useRewardStore((s) => s.history);
+  const user        = useAuthStore((s) => s.user);
+  const history     = useRewardStore((s) => s.history);
   const fetchHistory = useRewardStore((s) => s.fetchHistory);
-  const isLoading    = useRewardStore((s) => s.isLoading);
-  const [modal,    setModal]    = useState(false);
+  const isLoading   = useRewardStore((s) => s.isLoading);
+  const [modal, setModal] = useState(false);
   const [revealed, setRevealed] = useState({});
 
-  useEffect(() => {
-    const uid = user?.id || user?._id;
-    if (uid) fetchHistory(uid);
-  }, [user?.id, user?._id]);
+useEffect(() => {
+  const uid = user?.id || user?._id;
+  if (uid) fetchHistory(uid);
+}, [user?.id, user?._id]);
 
-  const balance = user?.points              || 0;
-  const earned  = user?.pointsEarned        || user?.totalPointsEarned || 0;
-  const spent   = user?.pointsSpent         || user?.totalPointsSpent  || 0;
+  const balance = user?.points || 0;
+  const earned  = user?.pointsEarned  || user?.totalPointsEarned  || 0;
+  const spent   = user?.pointsSpent   || user?.totalPointsSpent   || 0;
 
   const toggleReveal = (id) =>
     setRevealed((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -314,7 +302,9 @@ export default function Rewards() {
           <p className="text-xs font-medium text-gold-100 uppercase tracking-wide mb-1">
             Current balance
           </p>
-          <p className="text-3xl font-bold tabular-nums">{formatNumber(balance)}</p>
+          <p className="text-3xl font-bold tabular-nums">
+            {formatNumber(balance)}
+          </p>
           <p className="text-sm text-gold-200 mt-0.5">points</p>
         </div>
         <div className="bg-white border border-ink-100 rounded-2xl p-5 shadow-sm">
@@ -347,7 +337,11 @@ export default function Rewards() {
             Min 500 pts for airtime · Min 1,000 pts for gift cards
           </p>
         </div>
-        <Button icon={Gift} onClick={() => setModal(true)} disabled={balance < 500}>
+        <Button
+          icon={Gift}
+          onClick={() => setModal(true)}
+          disabled={balance < 500}
+        >
           Redeem rewards
         </Button>
       </div>
@@ -360,7 +354,8 @@ export default function Rewards() {
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-ink-50/60 text-xs uppercase tracking-wide text-ink-500">
+            <thead className="bg-ink-50/60 text-xs uppercase tracking-wide
+              text-ink-500">
               <tr>
                 <th className="text-left p-3 pl-5 font-medium">Date</th>
                 <th className="text-left p-3 font-medium">Type</th>
@@ -375,7 +370,9 @@ export default function Rewards() {
                 <tr>
                   <td colSpan={6} className="p-6">
                     <div className="space-y-2">
-                      {[1, 2].map((i) => <Skeleton key={i} className="h-10" />)}
+                      {[1,2].map((i) => (
+                        <Skeleton key={i} className="h-10" />
+                      ))}
                     </div>
                   </td>
                 </tr>
@@ -395,8 +392,11 @@ export default function Rewards() {
                 const id   = r._id || r.id;
                 const show = revealed[id];
                 return (
-                  <tr key={id} className="border-b border-ink-100 last:border-0">
-                    <td className="p-3 pl-5 text-ink-600">{formatDate(r.createdAt)}</td>
+                  <tr key={id}
+                    className="border-b border-ink-100 last:border-0">
+                    <td className="p-3 pl-5 text-ink-600">
+                      {formatDate(r.createdAt)}
+                    </td>
                     <td className="p-3 capitalize text-ink-700">{r.type}</td>
                     <td className="p-3 text-ink-700">{r.provider}</td>
                     <td className="p-3 font-medium text-ink-800">
@@ -407,7 +407,7 @@ export default function Rewards() {
                         <code className="text-xs font-mono text-ink-700">
                           {show
                             ? r.code
-                            : `${(r.code || '????').slice(0, 4)}••••`}
+                            : `${(r.code || '????').slice(0,4)}••••`}
                         </code>
                         <button
                           onClick={() => toggleReveal(id)}
@@ -418,7 +418,8 @@ export default function Rewards() {
                         </button>
                       </div>
                     </td>
-                    <td className="p-3 pr-5 text-right text-red-600 font-medium tabular-nums">
+                    <td className="p-3 pr-5 text-right text-red-600 font-medium
+                      tabular-nums">
                       −{formatNumber(r.pointsSpent)} pts
                     </td>
                   </tr>

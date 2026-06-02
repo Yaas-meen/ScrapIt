@@ -3,7 +3,6 @@ import { Link }                         from 'react-router-dom';
 import {
   Package, Clock, CheckCircle2,
   ArrowRight, Bell, Gift,
-  Check, X, Truck, PartyPopper,
 } from 'lucide-react';
 import { useAuthStore }         from '../../store/useAuthStore';
 import { usePickupStore }       from '../../store/usePickupStore';
@@ -29,25 +28,6 @@ function useCountUp(target, duration = 1000) {
     return () => cancelAnimationFrame(raf);
   }, [target, duration]);
   return count;
-}
-
-// Maps notification type to a Lucide icon + colour
-const NOTIF_ICON = {
-  Completed:   { icon: PartyPopper, bg: 'bg-eco-100',  color: 'text-eco-700'  },
-  Approved:    { icon: Check,       bg: 'bg-eco-100',  color: 'text-eco-700'  },
-  Rejected:    { icon: X,           bg: 'bg-red-100',  color: 'text-red-600'  },
-  'In Progress':{ icon: Truck,      bg: 'bg-gold-100', color: 'text-gold-700' },
-};
-const NOTIF_DEFAULT = { icon: Bell, bg: 'bg-ink-100', color: 'text-ink-600' };
-
-function NotifIcon({ type }) {
-  const { icon: Icon, bg, color } = NOTIF_ICON[type] || NOTIF_DEFAULT;
-  return (
-    <span className={`w-7 h-7 rounded-full ${bg} ${color}
-      grid place-items-center shrink-0`}>
-      <Icon size={13} />
-    </span>
-  );
 }
 
 function StatCardSkeleton() {
@@ -100,7 +80,7 @@ export default function UserDashboard() {
     completed: myPickups.filter((p) => p.status === 'Completed').length,
   };
 
-  const recent = [...myPickups]
+  const recent       = [...myPickups]
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 5);
 
@@ -112,11 +92,10 @@ export default function UserDashboard() {
 
   return (
     <div className="space-y-6">
-
-      {/* Greeting — no emoji */}
+      {/* Greeting */}
       <div>
         <h1 className="text-2xl font-bold text-ink-800">
-          {getGreeting()}, {name.split(' ')[0]}
+          {getGreeting()}, {name.split(' ')[0]} 👋
         </h1>
         <p className="text-sm text-ink-500 mt-1">
           Here's what's happening with your recycling.
@@ -280,7 +259,13 @@ export default function UserDashboard() {
               <li key={n.id || n._id}
                 className="flex gap-3 p-3 rounded-xl bg-eco-50/60
                   border border-eco-100">
-                <NotifIcon type={n.type} />
+                <span className="w-7 h-7 rounded-full bg-eco-100
+                  text-eco-700 grid place-items-center shrink-0 text-xs">
+                  {n.type === 'Completed' ? '🎉'
+                   : n.type === 'Approved' ? '✅'
+                   : n.type === 'Rejected' ? '❌'
+                   : n.type === 'In Progress' ? '🚛' : '🔔'}
+                </span>
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-ink-800 truncate">
                     {n.title}
@@ -294,7 +279,6 @@ export default function UserDashboard() {
           </ul>
         </div>
       )}
-
     </div>
   );
 }
