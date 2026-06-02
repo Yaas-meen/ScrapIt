@@ -251,7 +251,7 @@ function RedemptionModal({ open, onClose }) {
             <Gift size={24} />
           </div>
           <p className="text-sm text-ink-600">
-            Your code is ready. Save it — it won't be shown again.
+            Your code is ready. Save it.
           </p>
           <div className="flex items-center gap-2 bg-ink-50 rounded-xl
             border border-ink-200 p-3">
